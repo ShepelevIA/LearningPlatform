@@ -6,10 +6,13 @@ export default class Users extends BaseSchema {
   public async up () {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('user_id')
-      table.string('name', 100).notNullable()
+      table.string('last_name', 100).notNullable()
+      table.string('first_name', 100).notNullable()
+      table.string('middle_name', 100).notNullable()
       table.string('email', 254).notNullable().unique()
       table.string('password', 255).notNullable()
       table.enu('role', ['student', 'teacher', 'admin']).notNullable()
+      table.boolean('is_verified').defaultTo(false)
       table.string('api_token', 128).nullable()
       table.timestamp('created_at', { useTz: true }).notNullable()
       table.timestamp('updated_at', { useTz: true }).notNullable()

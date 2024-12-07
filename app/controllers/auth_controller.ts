@@ -38,6 +38,24 @@ export default class AuthController {
       })
     }
   }
+
+  public async register({ request, response }: HttpContext) {
+      try {
+        const { email, password, confirmPassword, registerKey } = request.only(['email', 'password', 'confirmPassword', 'registerKey'])
+
+        response.status(200).json({
+          email,
+          password,
+          confirmPassword,
+          registerKey
+        })
+      } catch (error) {    
+        return response.status(500).json({
+          message: 'Ошибка авторизации',
+          error: error.message
+        })
+      }
+  }
   
   public async logout({ auth, response }: HttpContext) {
     try {

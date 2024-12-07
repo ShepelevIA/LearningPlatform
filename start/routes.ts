@@ -23,6 +23,12 @@ import AuthController from '#controllers/auth_controller'
 router.group(() => {
 
   router.group(() => {
+    router.post('/login', [AuthController, 'login']).as('auth.login')
+    router.post('/register', [AuthController, 'register']).as('auth.register')
+    router.post('/logout', [AuthController, 'logout']).as('auth.logout').use(middleware.auth({ roles: ['admin', 'teacher', 'student'] }))
+    router.get('/me', [AuthController, 'me']).as('auth.me').use(middleware.auth({ roles: ['admin', 'teacher', 'student'] }))
+
+  router.group(() => {
     router.get('/', [UsersController, 'index']).use(middleware.auth({ roles: ['admin'] }))
     router.post('/create', [UsersController, 'create']).use(middleware.auth({ roles: ['admin'] }))
     router.get('/show/:id', [UsersController, 'show']).use(middleware.auth({ roles: ['admin'] }))
@@ -39,9 +45,9 @@ router.group(() => {
   }).prefix('courses')
 
   router.group(() => {
-    router.get('/', [EnrollmentsController, 'index']).use(middleware.auth({ roles: ['admin', 'teacher', 'student'] }))
+    router.get('/', [EnrollmentsController, 'index']).use(middleware.auth({ roles: ['admin', 'teacher'] }))
     router.post('/create', [EnrollmentsController, 'create']).use(middleware.auth({ roles: ['admin', 'student'] }))
-    router.get('/show/:id', [EnrollmentsController, 'show']).use(middleware.auth({ roles: ['admin', 'teacher', 'student'] }))
+    router.get('/show/:id', [EnrollmentsController, 'show']).use(middleware.auth({ roles: ['admin', 'teacher'] }))
     router.patch('/update/:id', [EnrollmentsController, 'update']).use(middleware.auth({ roles: ['admin', 'student'] }))
     router.delete('/destroy/:id', [EnrollmentsController, 'destroy']).use(middleware.auth({ roles: ['admin', 'student'] }))
   }).prefix('enrollments')
@@ -94,10 +100,6 @@ router.group(() => {
     router.delete('/destroy/:id', [FilesController, 'destroy']).use(middleware.auth({ roles: ['admin', 'teacher', 'student'] }))
   }).prefix('files')
 
-  router.group(() => {
-    router.post('/login', [AuthController, 'login']).as('auth.login')
-    router.post('/logout', [AuthController, 'logout']).as('auth.logout').use(middleware.auth({ roles: ['admin', 'teacher', 'student'] }))
-    router.get('/me', [AuthController, 'me']).as('auth.me').use(middleware.auth({ roles: ['admin', 'teacher', 'student'] }))
   }).prefix('/auth')
 
 }).prefix('api')

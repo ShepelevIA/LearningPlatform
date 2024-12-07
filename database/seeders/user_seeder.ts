@@ -6,10 +6,13 @@ import { DateTime } from 'luxon'
 export default class UserSeeder extends BaseSeeder {
   public async run() {
     const users: {
-      name: string
+      last_name: string
+      first_name: string
+      middle_name: string
       email: string
       password: string
       role: "admin" | "teacher" | "student"
+      is_verified: boolean
       created_at: DateTime
       updated_at: DateTime
     }[] = []
@@ -22,13 +25,17 @@ export default class UserSeeder extends BaseSeeder {
       for (let i = 0; i < numberOfUsers; i++) {
         const firstName = faker.person.firstName().toLowerCase()
         const lastName = faker.person.lastName().toLowerCase()
+        const middleName = faker.person.middleName().toLowerCase()
         const domain = faker.helpers.arrayElement(domains)
 
         users.push({
-          name: `${firstName} ${lastName}`,
+          last_name: lastName,
+          first_name: firstName,
+          middle_name: middleName,
           email: `${firstName}_${lastName}@${domain}`,
           password: '1234',
           role,
+          is_verified: role === 'admin',
           created_at: DateTime.now(),
           updated_at: DateTime.now(),
         })

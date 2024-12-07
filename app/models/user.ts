@@ -15,7 +15,13 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare user_id: number
 
   @column()
-  declare name: string
+  declare last_name: string
+
+  @column()
+  declare first_name: string
+
+  @column()
+  declare middle_name: string
 
   @column()
   declare email: string
@@ -25,6 +31,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @column()
   declare role: 'student' | 'teacher' | 'admin'
+
+  @column()
+  declare is_verified: boolean
 
   @column()
   declare api_token: string | null
