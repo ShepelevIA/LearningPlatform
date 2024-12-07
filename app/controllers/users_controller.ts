@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import User from '#models/user'
+import FileService from '#services/fileService'
 
 export default class UsersController {
   public async index({ request, response }: HttpContext) {
@@ -8,25 +9,26 @@ export default class UsersController {
       const limit = request.input('limit', 10)
       const role = request.input('role')
 
-      let query = User.query().select('user_id', 'name', 'email', 'role', 'created_at', 'updated_at')
+      let query = User.query().select('user_id', 'last_name', 'first_name', 'middle_name', 'email', 'role', 'created_at', 'updated_at')
 
       if (role) {
         query = query.where('role', role)
       }
 
       const paginatedUsers = await query.paginate(page, limit)
-
       const response_users = paginatedUsers.toJSON()
-      response_users.data = response_users.data.map(user => {
-        return {
-          user_id: user.user_id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          created_at: user.created_at,
-          updated_at: user.updated_at
-        }
-      })
+
+      for (const user of response_users.data) {
+        const userInstance = new User()
+        userInstance.user_id = user.user_id
+        const files = await FileService.getFilesForModel(userInstance)
+        user.files = files.map((file) => ({
+          file_id: file.file_id,
+          file_url: file.file_url,
+          created_at: file.created_at,
+          updated_at: file.updated_at,
+        }))
+      }
 
       return response.status(200).json(response_users)
     } catch (error) {
@@ -38,13 +40,9 @@ export default class UsersController {
     }
   }
 
-  /**
-   * Handle form submission for the create action
-   */
   async create({ request, response }: HttpContext) {
     try {
-      const data = request.only(['name', 'email', 'password', 'role'])
-
+      const data = request.only(['last_name', 'first_name', 'middle_name', 'email', 'password', 'role'])
       const allowedRoles = ['student', 'teacher', 'admin']
 
       if (!allowedRoles.includes(data.role)) {
@@ -54,17 +52,33 @@ export default class UsersController {
       }
 
       const user = await User.create(data)
-
       await user.save()
+
+      const fileUpload = request.file('file')
+      console.log(fileUpload)
+      
+      if (fileUpload) {
+        await FileService.attachFileToModel(user, fileUpload)
+      }
+
+      const files = await FileService.getFilesForModel(user)
 
       return response.status(201).json({
         message: 'Пользователь успешно создан!',
         user_id: user.user_id,
-        name: user.name,
+        last_name: user.last_name,
+        first_name: user.first_name,
+        middle_name: user.middle_name,
         email: user.email,
         role: user.role,
         created_at: user.created_at,
-        updated_at: user.updated_at
+        updated_at: user.updated_at,
+        files: files.map((file) => ({
+          file_id: file.file_id,
+          file_url: file.file_url,
+          created_at: file.created_at,
+          updated_at: file.updated_at
+        }))
       })
     } catch (error) {
       if (error.message.includes('Duplicate entry')) {
@@ -85,19 +99,27 @@ export default class UsersController {
     }
   }
 
-  /**
-   * Show individual record
-   */
   async show({ params, response }: HttpContext) {
     try {
       const user = await User.findOrFail(params.id)
+
+      const files = await FileService.getFilesForModel(user)
+
       return response.status(200).json({
         user_id: user.user_id,
-        name: user.name,
+        last_name: user.last_name,
+        first_name: user.first_name,
+        middle_name: user.middle_name,
         email: user.email,
         role: user.role,
         created_at: user.created_at,
-        updated_at: user.updated_at
+        updated_at: user.updated_at,
+        files: files.map((file) => ({
+          file_id: file.file_id,
+          file_url: file.file_url,
+          created_at: file.created_at,
+          updated_at: file.updated_at
+        }))
       })
     } catch (error) {
       if(error.message.includes('Row not found')) {
@@ -112,13 +134,9 @@ export default class UsersController {
     }
   }
 
-  /**
-   * Handle form submission for the edit action
-   */
   async update({ params, request, response }: HttpContext) {
     try {
-      const data = request.only(['name', 'email', 'password', 'role'])
-
+      const data = request.only(['last_name', 'first_name', 'middle_name', 'email', 'password', 'role'])
       const allowedRoles = ['student', 'teacher', 'admin']
 
       if (!allowedRoles.includes(data.role)) {
@@ -128,21 +146,38 @@ export default class UsersController {
       }
 
       const user = await User.findOrFail(params.id)
-      user.name = data.name
+      user.last_name = data.last_name
+      user.first_name = data.first_name
+      user.middle_name = data.middle_name
       user.email = data.email
       user.password = data.password
       user.role = data.role
   
       await user.save()
 
+      const fileUpload = request.file('file')
+      if (fileUpload) {
+        await FileService.attachFileToModel(user, fileUpload)
+      }
+
+      const files = await FileService.getFilesForModel(user)
+
       return response.status(200).json({
         message: 'Данные пользователя успешно обновлены!',
         user_id: user.user_id,
-        name: user.name,
+        last_name: user.last_name,
+        first_name: user.first_name,
+        middle_name: user.middle_name,
         email: user.email,
         role: user.role,
         created_at: user.created_at,
-        updated_at: user.updated_at
+        updated_at: user.updated_at,
+        files: files.map((file) => ({
+          file_id: file.file_id,
+          file_url: file.file_url,
+          created_at: file.created_at,
+          updated_at: file.updated_at
+        }))
       }) 
     } catch (error) {
       if(error.message.includes('Row not found')) {
@@ -162,11 +197,7 @@ export default class UsersController {
     }
   }
 
-  /**
-   * Delete record
-   */
   async destroy({ params, response }: HttpContext) {
-
     try {
       const user = await User.findOrFail(params.id)
       await user.delete()

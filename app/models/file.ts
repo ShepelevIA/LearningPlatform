@@ -6,10 +6,10 @@ export default class File extends BaseModel {
   declare file_id: number
 
   @column()
-  declare assignment_id: number
+  declare resource_type: string
 
   @column()
-  declare user_id: number
+  declare resource_id: number
 
   @column()
   declare file_url: string

@@ -9,6 +9,7 @@
     "serve": "node ace serve --watch",
     "build": "node ace build",
     "dev": "node ace serve --hmr",
+    "seeders": "node ace db:seed --files ./database/seeders/main_seeder",
     "test": "node ace test",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -53,6 +54,7 @@
   },
   "dependencies": {
     "@adonisjs/auth": "^9.2.3",
+    "@adonisjs/bodyparser": "^10.0.2",
     "@adonisjs/core": "^6.12.1",
     "@adonisjs/cors": "^2.2.1",
     "@adonisjs/lucid": "^21.2.0",
