@@ -41,15 +41,47 @@ export default class AuthController {
 
   public async register({ request, response }: HttpContext) {
       try {
-        const { email, password, confirmPassword, registerKey } = request.only(['email', 'password', 'confirmPassword', 'registerKey'])
+        const { last_name, first_name, middle_name, email, role, password, confirmPassword } = request.only(['last_name', 'first_name', 'middle_name', 'email', 'role', 'password', 'confirmPassword'])
 
-        response.status(200).json({
-          email,
-          password,
-          confirmPassword,
-          registerKey
-        })
+        const allowedRoles = ['student', 'teacher', 'admin']
+
+        if (!allowedRoles.includes(role)) {
+          return response.status(400).json({
+            message: 'Неверная роль. Допустимые роли: student, teacher, admin.'
+          })
+        }
+
+
+        if (confirmPassword === password) {
+          const user = await User.create({
+            last_name: last_name,
+            first_name: first_name,
+            middle_name: middle_name,
+            email: email,
+            role: role,
+            password: password
+          })
+
+          return response.status(201).json({
+            message: 'Пользователь успешно зарегистрирован',
+            user: {
+              user_id: user.user_id,
+              last_name: user.last_name,
+              first_name: user.first_name,
+              middle_name: user.middle_name,
+              email: user.email,
+              role: user.role,
+              is_verified: false,
+              created_at: user.created_at,
+            },
+          })
+        }
       } catch (error) {    
+        if (error.message.includes('Duplicate entry')) {
+          return response.status(400).json({
+            message: 'Пользователь с таким email уже существует.'
+          })
+        }
         return response.status(500).json({
           message: 'Ошибка авторизации',
           error: error.message

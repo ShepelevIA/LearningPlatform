@@ -91,12 +91,6 @@ export default class UsersController {
           message: 'Пользователь с таким email уже существует.'
         })
       }
-      else if(error.message.includes('Row not found')) {
-        return response.status(404).json({
-          message: 'Такого пользователя не существует!',
-        })
-      }
-
       return response.status(500).json({
         message: 'Произошла ошибка при создании пользователя.',
         error: error.message
