@@ -40,7 +40,9 @@ export default class ProgressController {
           'progresses.created_at',
           'progresses.updated_at',
           'students.user_id as student_id',
-          'students.name as student_name',
+          'students.first_name as teacher_first_name',
+          'students.last_name as teacher_last_name',
+          'students.middle_name as teacher_middle_name',
           'students.email as student_email',
           'students.role as student_role',
           'modules.module_id',
@@ -51,7 +53,9 @@ export default class ProgressController {
           'courses.title as course_title',
           'courses.description as course_description',
           'teachers.user_id as teacher_id',
-          'teachers.name as teacher_name',
+          'teachers.first_name as teacher_first_name',
+          'teachers.last_name as teacher_last_name',
+          'teachers.middle_name as teacher_middle_name',
           'teachers.email as teacher_email',
           'teachers.role as teacher_role'
         )
@@ -64,7 +68,9 @@ export default class ProgressController {
           status: progress.status,
           student: {
             student_id: progress.student_id,
-            name: progress.$extras.student_name,
+            first_name: progress.$extras.students_first_name,
+            last_name: progress.$extras.students_last_name,
+            middle_name: progress.$extras.students_middle_name,
             email: progress.$extras.student_email,
             role: progress.$extras.student_role
           },
@@ -79,7 +85,9 @@ export default class ProgressController {
               description: progress.$extras.course_description,
               teacher: {
                 teacher_id: progress.$extras.teacher_id,
-                name: progress.$extras.teacher_name,
+                first_name: progress.$extras.teacher_first_name,
+                last_name: progress.$extras.teacher_last_name,
+                middle_name: progress.$extras.teacher_middle_name,
                 email: progress.$extras.teacher_email,
                 role: progress.$extras.teacher_role
               }
@@ -247,7 +255,7 @@ export default class ProgressController {
   
       const progress = await Progress
         .query()
-        .where('progresses.progress_id', params.id) // Обратите внимание на добавление 'progresses.' для консистентности
+        .where('progresses.progress_id', params.id)
         .innerJoin('users as students', 'progresses.student_id', 'students.user_id')
         .innerJoin('modules', 'progresses.module_id', 'modules.module_id')
         .innerJoin('courses', 'modules.course_id', 'courses.course_id')
@@ -258,7 +266,9 @@ export default class ProgressController {
           'progresses.created_at',
           'progresses.updated_at',
           'students.user_id as student_id',
-          'students.name as student_name',
+          'students.first_name as teacher_first_name',
+          'students.last_name as teacher_last_name',
+          'students.middle_name as teacher_middle_name',
           'students.email as student_email',
           'students.role as student_role',
           'modules.module_id',
@@ -268,7 +278,9 @@ export default class ProgressController {
           'courses.title as course_title',
           'courses.description as course_description', 
           'teachers.user_id as teacher_id',
-          'teachers.name as teacher_name',
+          'teachers.first_name as teacher_first_name',
+          'teachers.last_name as teacher_last_name',
+          'teachers.middle_name as teacher_middle_name',
           'teachers.email as teacher_email',
           'teachers.role as teacher_role'
         )
@@ -304,7 +316,9 @@ export default class ProgressController {
         status: progress.status,
         student: {
           student_id: progress.student_id,
-          name: progress.$extras.student_name,
+          first_name: progress.$extras.students_first_name,
+          last_name: progress.$extras.students_last_name,
+          middle_name: progress.$extras.students_middle_name,
           email: progress.$extras.student_email,
           role: progress.$extras.student_role
         },
@@ -318,7 +332,9 @@ export default class ProgressController {
             description: progress.$extras.course_description,
             teacher: {
               teacher_id: progress.$extras.teacher_id,
-              name: progress.$extras.teacher_name,
+              first_name: progress.$extras.teacher_first_name,
+              last_name: progress.$extras.teacher_last_name,
+              middle_name: progress.$extras.teacher_middle_name,
               email: progress.$extras.teacher_email,
               role: progress.$extras.teacher_role
             }

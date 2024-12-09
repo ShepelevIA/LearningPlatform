@@ -58,7 +58,9 @@ export default class GradesController {
           'courses.title as course_title',
           'courses.description as course_description',
           'teachers.user_id as teacher_id',
-          'teachers.name as teacher_name',
+          'teachers.first_name as teacher_first_name',
+          'teachers.last_name as teacher_last_name',
+          'teachers.middle_name as teacher_middle_name',
           'teachers.email as teacher_email',
           'teachers.role as teacher_role'
         )
@@ -92,7 +94,9 @@ export default class GradesController {
                 description: grade.$extras.course_description,
                 teacher: {
                   teacher_id: grade.$extras.teacher_id,
-                  name: grade.$extras.teacher_name,
+                  first_name: grade.$extras.teacher_first_name,
+                  last_name: grade.$extras.teacher_last_name,
+                  middle_name: grade.$extras.teacher_middle_name,
                   email: grade.$extras.teacher_email,
                   role: grade.$extras.teacher_role
                 }
@@ -271,7 +275,9 @@ export default class GradesController {
           'courses.title as course_title',
           'courses.description as course_description',
           'teachers.user_id as teacher_id',
-          'teachers.name as teacher_name',
+          'teachers.first_name as teacher_first_name',
+          'teachers.last_name as teacher_last_name',
+          'teachers.middle_name as teacher_middle_name',
           'teachers.email as teacher_email',
           'teachers.role as teacher_role'
         )
@@ -342,7 +348,9 @@ export default class GradesController {
               description: grade.$extras.course_description,
               teacher: {
                 teacher_id: grade.$extras.teacher_id,
-                name: grade.$extras.teacher_name,
+                first_name: grade.$extras.teacher_first_name,
+                last_name: grade.$extras.teacher_last_name,
+                middle_name: grade.$extras.teacher_middle_name,
                 email: grade.$extras.teacher_email,
                 role: grade.$extras.teacher_role
               }

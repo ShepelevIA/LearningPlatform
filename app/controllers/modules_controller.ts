@@ -43,7 +43,9 @@ export default class ModulesController {
           'courses.title as course_title',
           'courses.description as course_description',
           'teachers.user_id as teacher_id',
-          'teachers.name as teacher_name',
+          'teachers.first_name as teacher_first_name',
+          'teachers.last_name as teacher_last_name',
+          'teachers.middle_name as teacher_middle_name',
           'teachers.email as teacher_email',
           'teachers.role as teacher_role'
         )
@@ -62,7 +64,9 @@ export default class ModulesController {
             description: module.$extras.course_description,
             teacher: {
               user_id: module.$extras.teacher_id,
-              name: module.$extras.teacher_name,
+              last_name: module.$extras.teacher_last_name, 
+              first_name: module.$extras.teacher_first_name, 
+              middle_name: module.$extras.teacher_middle_name, 
               email: module.$extras.teacher_email,
               role: module.$extras.teacher_role,
             }
@@ -178,9 +182,11 @@ export default class ModulesController {
           'courses.course_id',
           'courses.title as course_title',
           'courses.description as course_description',
-          'courses.teacher_id as course_teacher_id', // Добавляем это поле
+          'courses.teacher_id as course_teacher_id', 
           'teachers.user_id as teacher_id',
-          'teachers.name as teacher_name',
+          'teachers.first_name as teacher_first_name',
+          'teachers.last_name as teacher_last_name',
+          'teachers.middle_name as teacher_middle_name',
           'teachers.email as teacher_email',
           'teachers.role as teacher_role'
         )
@@ -223,7 +229,9 @@ export default class ModulesController {
           description: module.$extras.course_description,
           teacher: {
             user_id: module.$extras.teacher_id,
-            name: module.$extras.teacher_name,
+            last_name: module.$extras.teacher_last_name, 
+            first_name: module.$extras.teacher_first_name, 
+            middle_name: module.$extras.teacher_middle_name, 
             email: module.$extras.teacher_email,
             role: module.$extras.teacher_role,
           }

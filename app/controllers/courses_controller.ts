@@ -38,7 +38,9 @@ export default class CoursesController {
           'courses.created_at',
           'courses.updated_at',
           'teachers.user_id as teacher_id',
-          'teachers.name as teacher_name',
+          'teachers.first_name as teacher_first_name',
+          'teachers.last_name as teacher_last_name',
+          'teachers.middle_name as teacher_middle_name',
           'teachers.email as teacher_email',
           'teachers.role as teacher_role'
         )
@@ -52,7 +54,9 @@ export default class CoursesController {
           description: course.description,
           teacher: {
             teacher_id: course.teacher_id,
-            name: course.$extras.teacher_name,
+            first_name: course.$extras.teacher_first_name,
+            last_name: course.$extras.teacher_last_name,
+            middle_name: course.$extras.teacher_middle_name,
             email: course.$extras.teacher_email,
             role: course.$extras.teacher_role,
           },
@@ -156,7 +160,9 @@ export default class CoursesController {
           'courses.created_at',
           'courses.updated_at',
           'teachers.user_id as teacher_id',
-          'teachers.name as teacher_name',
+          'teachers.first_name as teacher_first_name',
+          'teachers.last_name as teacher_last_name',
+          'teachers.middle_name as teacher_middle_name',
           'teachers.email as teacher_email',
           'teachers.role as teacher_role'
         )
@@ -189,7 +195,9 @@ export default class CoursesController {
         description: course.description,
         teacher: {
           teacher_id: course.teacher_id,
-          name: course.$extras.teacher_name,
+          first_name: course.$extras.teacher_first_name,
+          last_name: course.$extras.teacher_last_name,
+          middle_name: course.$extras.teacher_middle_name,
           email: course.$extras.teacher_email,
           role: course.$extras.teacher_role
         },

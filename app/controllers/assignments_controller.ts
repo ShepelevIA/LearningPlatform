@@ -3,10 +3,11 @@ import Assignment from '#models/assignment'
 import Module from '#models/module'
 import Course from '#models/course'
 import Enrollment from '#models/enrollment'
+import FileService from '#services/fileService'
 
 export default class AssignmentsController {
   /**
-   * Display a list of resource
+   * Display a list of assignments with files
    */
   async index({ auth, request, response }: HttpContext) {
     try { 
@@ -34,28 +35,43 @@ export default class AssignmentsController {
       }
     
       const paginatedAssignments = await query
-        .select(
-          'assignments.assignment_id',
-          'assignments.title',
-          'assignments.description',
-          'assignments.due_date',
-          'assignments.created_at',
-          'assignments.updated_at',
-          'modules.module_id',
-          'modules.title as module_title',
-          'modules.content as module_content',
-          'modules.order as module_order',
-          'courses.course_id',
-          'courses.title as course_title',
-          'courses.description as course_description',
-          'teachers.user_id as teacher_id',
-          'teachers.name as teacher_name',
-          'teachers.email as teacher_email',
-          'teachers.role as teacher_role'
-        )
-        .paginate(page, limit)
+      .select(
+        'assignments.assignment_id',
+        'assignments.title',
+        'assignments.description',
+        'assignments.due_date',
+        'assignments.created_at',
+        'assignments.updated_at',
+        'modules.module_id',
+        'modules.title as module_title',
+        'modules.content as module_content',
+        'modules.order as module_order',
+        'courses.course_id',
+        'courses.title as course_title',
+        'courses.description as course_description',
+        'teachers.user_id as teacher_id',
+        'teachers.first_name as teacher_first_name',
+        'teachers.last_name as teacher_last_name',
+        'teachers.middle_name as teacher_middle_name',
+        'teachers.email as teacher_email',
+        'teachers.role as teacher_role'
+      )
+      .paginate(page, limit)
   
       const paginatedAssignmentsJson = paginatedAssignments.toJSON()
+
+      for (const assignment of paginatedAssignmentsJson.data) {
+        const assignmentInstance = new Assignment()
+        assignmentInstance.assignment_id = assignment.assignment_id
+        const files = await FileService.getFilesForModel(assignmentInstance)
+        assignment.files = files.map(file => ({
+          file_id: file.file_id,
+          file_url: file.file_url,
+          created_at: file.created_at,
+          updated_at: file.updated_at
+        }))
+      }
+
       paginatedAssignmentsJson.data = paginatedAssignmentsJson.data.map(assignment => {
         return {
           assignment_id: assignment.assignment_id,
@@ -64,23 +80,26 @@ export default class AssignmentsController {
           due_date: assignment.due_date,
           module: {
             module_id: assignment.module_id,
-            title: assignment.$extras.module_title,
-            content: assignment.$extras.module_content,
-            order: assignment.$extras.module_order,
+            title: assignment.module_title,
+            content: assignment.module_content,
+            order: assignment.module_order,
             course: {
-              course_id: assignment.$extras.course_id,
-              title: assignment.$extras.course_title,
-              description: assignment.$extras.course_description,
+              course_id: assignment.course_id,
+              title: assignment.course_title,
+              description: assignment.course_description,
               teacher: {
-                teacher_id: assignment.$extras.teacher_id,
-                name: assignment.$extras.teacher_name,
-                email: assignment.$extras.teacher_email,
-                role: assignment.$extras.teacher_role
+                teacher_id: assignment.teacher_id,
+                last_name: assignment.teacher_last_name, 
+                first_name: assignment.teacher_first_name, 
+                middle_name: assignment.teacher_middle_name, 
+                email: assignment.teacher_email,
+                role: assignment.teacher_role
               }
             }
           },
           created_at: assignment.created_at,
-          updated_at: assignment.updated_at
+          updated_at: assignment.updated_at,
+          files: assignment.files
         }
       })
     
@@ -94,7 +113,7 @@ export default class AssignmentsController {
   }
 
   /**
-   * Create a new assignment
+   * Create a new assignment and optionally attach a file
    */
   async create({ request, auth, response }: HttpContext) {
     try {
@@ -133,6 +152,15 @@ export default class AssignmentsController {
         due_date: data.due_date
       })
     
+      await assignment.save()
+  
+      const fileUpload = request.file('file')
+      if (fileUpload) {
+        await FileService.attachFileToModel(assignment, fileUpload)
+      }
+  
+      const files = await FileService.getFilesForModel(assignment)
+    
       return response.status(201).json({
         message: 'Задание успешно создано!',
         assignment_id: assignment.assignment_id,
@@ -140,7 +168,13 @@ export default class AssignmentsController {
         description: assignment.description,
         due_date: assignment.due_date,
         created_at: assignment.created_at,
-        updated_at: assignment.updated_at
+        updated_at: assignment.updated_at,
+        files: files.map(file => ({
+          file_id: file.file_id,
+          file_url: file.file_url,
+          created_at: file.created_at,
+          updated_at: file.updated_at
+        }))
       })
     } catch (error) {
       return response.status(500).json({
@@ -151,7 +185,7 @@ export default class AssignmentsController {
   }
 
   /**
-   * Show individual record
+   * Show individual assignment with files
    */
   async show({ params, auth, response }: HttpContext) {
     try {
@@ -218,6 +252,10 @@ export default class AssignmentsController {
           message: 'Доступ запрещён. У вас нет прав для просмотра этого задания.'
         }
       }
+
+      const assignmentInstance = new Assignment()
+      assignmentInstance.assignment_id = assignment.assignment_id
+      const files = await FileService.getFilesForModel(assignmentInstance)
   
       return response.status(200).json({
         assignment_id: assignment.assignment_id,
@@ -242,7 +280,13 @@ export default class AssignmentsController {
           }
         },
         created_at: assignment.created_at,
-        updated_at: assignment.updated_at
+        updated_at: assignment.updated_at,
+        files: files.map(file => ({
+          file_id: file.file_id,
+          file_url: file.file_url,
+          created_at: file.created_at,
+          updated_at: file.updated_at
+        }))
       })
     } catch (error) {
       if (error.status) {
@@ -254,8 +298,9 @@ export default class AssignmentsController {
       })
     }
   }
+
   /**
-   * Handle form submission for the edit action
+   * Update assignment and optionally attach a file
    */
   async update({ auth, params, request, response }: HttpContext) {
     try {
@@ -313,13 +358,26 @@ export default class AssignmentsController {
   
       await assignment.save()
   
+      const fileUpload = request.file('file')
+      if (fileUpload) {
+        await FileService.attachFileToModel(assignment, fileUpload)
+      }
+  
+      const files = await FileService.getFilesForModel(assignment)
+  
       return response.status(200).json({
         message: 'Задание успешно обновлено!',
         assignment_id: assignment.assignment_id,
         title: assignment.title,
         description: assignment.description,
         due_date: assignment.due_date,
-        updated_at: assignment.updated_at
+        updated_at: assignment.updated_at,
+        files: files.map(file => ({
+          file_id: file.file_id,
+          file_url: file.file_url,
+          created_at: file.created_at,
+          updated_at: file.updated_at
+        }))
       })
     } catch (error) {
       if (error.message.includes('Row not found')) {
@@ -333,8 +391,9 @@ export default class AssignmentsController {
       })
     }
   }
+
   /**
-   * Delete record
+   * Delete assignment and its files
    */
   async destroy({ auth, params, response }: HttpContext) {
     try {
@@ -352,6 +411,12 @@ export default class AssignmentsController {
         return response.status(403).json({
           message: 'Доступ запрещен. Вы можете удалять задания только для своих курсов.'
         })
+      }
+
+      // Удаляем файлы, связанные с заданием
+      const files = await FileService.getFilesForModel(assignment)
+      for (const file of files) {
+        await FileService.deleteFileForModel(assignment, file.file_id)
       }
   
       await assignment.delete()

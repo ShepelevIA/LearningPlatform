@@ -46,7 +46,9 @@ export default class CommentsController {
           'modules.content as module_content',
           'modules.order as module_order',
           'users.user_id',
-          'users.name as user_name',
+          'users.first_name as teacher_first_name',
+          'users.last_name as teacher_last_name',
+          'users.middle_name as teacher_middle_name',
           'users.email as user_email',
           'users.role as user_role'
         )
@@ -65,7 +67,9 @@ export default class CommentsController {
           },
           user: {
             user_id: comment.user_id,
-            name: comment.$extras.user_name,
+            last_name: comment.$extras.teacher_last_name, 
+            first_name: comment.$extras.teacher_first_name, 
+            middle_name: comment.$extras.teacher_middle_name, 
             email: comment.$extras.user_email,
             role: comment.$extras.user_role
           },
@@ -193,10 +197,12 @@ export default class CommentsController {
             'modules.content as module_content',
             'modules.order as module_order',
             'users.user_id',
-            'users.name as user_name',
+            'users.first_name as teacher_first_name',
+            'users.last_name as teacher_last_name',
+            'users.middle_name as teacher_middle_name',
             'users.email as user_email',
             'users.role as user_role',
-            'courses.course_id as course_id', // Добавлено для проверки записи на курс
+            'courses.course_id as course_id',
             'courses.teacher_id as course_teacher_id'
           )
           .first()
@@ -253,7 +259,9 @@ export default class CommentsController {
           },
           user: {
             user_id: comment.user_id,
-            name: comment.$extras.user_name,
+            last_name: comment.$extras.teacher_last_name, 
+            first_name: comment.$extras.teacher_first_name, 
+            middle_name: comment.$extras.teacher_middle_name, 
             email: comment.$extras.user_email,
             role: comment.$extras.user_role
           },

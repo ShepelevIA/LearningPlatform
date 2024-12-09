@@ -36,14 +36,18 @@ export default class EnrollmentsController {
           'enrollments.created_at',
           'enrollments.updated_at',
           'students.user_id as student_id',
-          'students.name as student_name',
+          'students.first_name as students_first_name',
+          'students.last_name as students_last_name',
+          'students.middle_name as students_middle_name',
           'students.email as student_email',
           'students.role as student_role',
           'courses.course_id',
           'courses.title as course_title',
           'courses.description as course_description',
           'teachers.user_id as teacher_id',
-          'teachers.name as teacher_name',
+          'teachers.first_name as teacher_first_name',
+          'teachers.last_name as teacher_last_name',
+          'teachers.middle_name as teacher_middle_name',
           'teachers.email as teacher_email',
           'teachers.role as teacher_role'
         )
@@ -56,6 +60,9 @@ export default class EnrollmentsController {
           student: {
             id_student: enrollment.student_id,
             name: enrollment.$extras.student_name,
+            first_name: enrollment.$extras.students_first_name,
+            last_name: enrollment.$extras.students_last_name,
+            middle_name: enrollment.$extras.students_middle_name,
             email: enrollment.$extras.student_email,
             role: enrollment.$extras.student_role
           },
@@ -65,7 +72,9 @@ export default class EnrollmentsController {
             description: enrollment.$extras.course_description,
             teacher: {
               teacher_id: enrollment.$extras.teacher_id,
-              name: enrollment.$extras.teacher_name,
+              first_name: enrollment.$extras.teacher_first_name,
+              last_name: enrollment.$extras.teacher_last_name,
+              middle_name: enrollment.$extras.teacher_middle_name,
               email: enrollment.$extras.teacher_email,
               role: enrollment.$extras.teacher_role
             }
@@ -182,14 +191,18 @@ export default class EnrollmentsController {
           'enrollments.created_at',
           'enrollments.updated_at',
           'students.user_id as student_id',
-          'students.name as student_name',
+          'students.first_name as teacher_first_name',
+          'students.last_name as teacher_last_name',
+          'students.middle_name as teacher_middle_name',
           'students.email as student_email',
           'students.role as student_role',
           'courses.course_id',
           'courses.title as course_title',
           'courses.description as course_description',
           'teachers.user_id as teacher_id',
-          'teachers.name as teacher_name',
+          'teachers.first_name as teacher_first_name',
+          'teachers.last_name as teacher_last_name',
+          'teachers.middle_name as teacher_middle_name',
           'teachers.email as teacher_email',
           'teachers.role as teacher_role'
         )
@@ -220,7 +233,9 @@ export default class EnrollmentsController {
         enrollment_id: enrollment.enrollment_id,
         student: {
           id_student: enrollment.student_id,
-          name: enrollment.$extras.student_name,
+          first_name: enrollment.$extras.students_first_name,
+          last_name: enrollment.$extras.students_last_name,
+          middle_name: enrollment.$extras.students_middle_name,
           email: enrollment.$extras.student_email,
           role: enrollment.$extras.student_role
         },
@@ -230,7 +245,9 @@ export default class EnrollmentsController {
           description: enrollment.$extras.course_description,
           teacher: {
             teacher_id: enrollment.$extras.teacher_id,
-            name: enrollment.$extras.teacher_name,
+            first_name: enrollment.$extras.teacher_first_name,
+            last_name: enrollment.$extras.teacher_last_name,
+            middle_name: enrollment.$extras.teacher_middle_name,
             email: enrollment.$extras.teacher_email,
             role: enrollment.$extras.teacher_role
           }
