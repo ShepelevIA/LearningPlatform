@@ -3,6 +3,9 @@ import User from '#models/user'
 import FileService from '#services/fileService'
 
 export default class UsersController {
+    /**
+   * Display a list of resource
+   */
   public async index({ request, response }: HttpContext) {
     try {
       const page = request.input('page', 1)
@@ -39,7 +42,9 @@ export default class UsersController {
       })
     }
   }
-
+  /**
+   * Display form to create a new record
+   */
   async create({ request, response }: HttpContext) {
     try {
       const data = request.only(['last_name', 'first_name', 'middle_name', 'email', 'password', 'role'])
@@ -98,7 +103,9 @@ export default class UsersController {
       })
     }
   }
-
+  /**
+   * Show individual record
+   */
   async show({ params, response }: HttpContext) {
     try {
       const user = await User.findOrFail(params.id)
@@ -133,7 +140,9 @@ export default class UsersController {
       })
     }
   }
-
+  /**
+   * Handle form submission for the edit action
+   */
   async update({ params, request, response }: HttpContext) {
     try {
       const data = request.only(['last_name', 'first_name', 'middle_name', 'email', 'password', 'role'])
@@ -196,14 +205,24 @@ export default class UsersController {
       })
     }
   }
-
+  /**
+   * Delete record
+   */
   async destroy({ params, response }: HttpContext) {
     try {
       const user = await User.findOrFail(params.id)
+
+      const files = await FileService.getFilesForModel(user)
+
+      for (const file of files) {
+        await FileService.deleteFileForModel(user, file.file_id)
+      }
+
       await user.delete()
+
       return response.status(204).noContent()
     } catch (error) {
-      if(error.message.includes('Row not found')) {
+      if (error.message.includes('Row not found')) {
         return response.status(404).json({
           message: 'Такого пользователя не существует!',
         })
