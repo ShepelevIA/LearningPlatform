@@ -80,20 +80,20 @@ export default class AssignmentsController {
           due_date: assignment.due_date,
           module: {
             module_id: assignment.module_id,
-            title: assignment.module_title,
-            content: assignment.module_content,
-            order: assignment.module_order,
+            title: assignment.$extras.module_title,
+            content: assignment.$extras.module_content,
+            order: assignment.$extras.module_order,
             course: {
-              course_id: assignment.course_id,
-              title: assignment.course_title,
-              description: assignment.course_description,
+              course_id: assignment.$extras.course_id,
+              title: assignment.$extras.course_title,
+              description: assignment.$extras.course_description,
               teacher: {
-                teacher_id: assignment.teacher_id,
-                last_name: assignment.teacher_last_name, 
-                first_name: assignment.teacher_first_name, 
-                middle_name: assignment.teacher_middle_name, 
-                email: assignment.teacher_email,
-                role: assignment.teacher_role
+                teacher_id: assignment.$extras.teacher_id,
+                last_name: assignment.$extras.teacher_last_name, 
+                first_name: assignment.$extras.teacher_first_name, 
+                middle_name: assignment.$extras.teacher_middle_name, 
+                email: assignment.$extras.teacher_email,
+                role: assignment.$extras.teacher_role
               }
             }
           },
