@@ -183,7 +183,9 @@ export default class GradesController {
         feedback: grade.feedback,
         student: {
           student_id: student.user_id,
-          name: student.name,
+          last_name: student.last_name,
+          first_name: student.first_name,
+          middle_name: student.middle_name,
           email: student.email,
           role: student.role
         },
@@ -203,7 +205,9 @@ export default class GradesController {
               description: course.description,
               teacher: {
                 teacher_id: teacher.user_id,
-                name: teacher.name,
+                last_name: teacher.last_name,
+                first_name: teacher.first_name,
+                middle_name: teacher.middle_name,
                 email: teacher.email,
                 role: teacher.role
               }
@@ -412,7 +416,9 @@ export default class GradesController {
         feedback: grade.feedback,
         student: {
           student_id: student.user_id,
-          name: student.name,
+          last_name: student.last_name,
+          first_name: student.first_name,
+          middle_name: student.middle_name,
           email: student.email,
           role: student.role,
         },
@@ -432,7 +438,9 @@ export default class GradesController {
               description: course.description,
               teacher: {
                 teacher_id: teacher.user_id,
-                name: teacher.name,
+                last_name: teacher.last_name,
+                first_name: teacher.first_name,
+                middle_name: teacher.middle_name,
                 email: teacher.email,
                 role: teacher.role,
               },

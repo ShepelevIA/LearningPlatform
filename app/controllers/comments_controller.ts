@@ -144,7 +144,9 @@ export default class CommentsController {
         },
         user: {
           user_id: user.user_id,
-          name: user.name,
+          last_name: user.last_name,
+          first_name: user.first_name,
+          middle_name: user.middle_name,
           email: user.email,
           role: user.role,
         },

@@ -112,7 +112,9 @@ export default class CoursesController {
         description: course.description,
         teacher: {
           teacher_id: teacher.user_id,
-          name: teacher.name,
+          last_name: teacher.last_name,
+          first_name: teacher.first_name,
+          middle_name: teacher.middle_name,
           email: teacher.email,
           role: teacher.role
         },
@@ -266,7 +268,9 @@ export default class CoursesController {
         description: course.description,
         teacher: {
           teacher_id: teacher.user_id,
-          name: teacher.name,
+          last_name: teacher.last_name,
+          first_name: teacher.first_name,
+          middle_name: teacher.middle_name,
           email: teacher.email,
           role: teacher.role
         },
