@@ -4,6 +4,7 @@ import User from '#models/user'
 import Token from '#models/token'
 import { createHash } from 'crypto'
 import { AccessToken } from '@adonisjs/auth/access_tokens'
+import FileService from '#services/fileService'
 
 export default class AuthController {
   async login({ request, response }: HttpContext) {
@@ -224,6 +225,38 @@ export default class AuthController {
     } catch (error) {
       return response.status(500).json({
         message: 'Ошибка получения данных',
+        error: error.message,
+      })
+    }
+  }
+
+  async uploadAvatarMe({ request, response, auth }: HttpContext) {
+    try {
+      const user = auth.user
+      if (!user) {
+        return response.unauthorized({ message: 'Пользователь не авторизован' })
+      }
+
+      const fileUpload = request.file('file')
+      if (!fileUpload) {
+        return response.badRequest({ message: 'Файл не предоставлен' })
+      }
+
+      await FileService.attachFileToModel(user, fileUpload)
+      const files = await FileService.getFilesForModel(user)
+
+      return response.status(200).json({
+        message: 'Аватар успешно загружен!',
+        files: files.map((file) => ({
+          file_id: file.file_id,
+          file_url: file.file_url,
+          created_at: file.created_at,
+          updated_at: file.updated_at
+        }))
+      })
+    } catch (error) {
+      return response.status(500).json({
+        message: 'Произошла ошибка при загрузке аватара.',
         error: error.message,
       })
     }
