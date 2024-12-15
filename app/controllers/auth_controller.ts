@@ -4,6 +4,7 @@ import User from '#models/user'
 import Token from '#models/token'
 import { createHash } from 'crypto'
 import { AccessToken } from '@adonisjs/auth/access_tokens'
+import File from '#models/file'
 import FileService from '#services/fileService'
 
 export default class AuthController {
@@ -215,12 +216,16 @@ export default class AuthController {
       if (!user) {
         return response.status(401).json({ message: 'Пользователь не авторизован' })
       }
+      const userInstance = new User()
+      userInstance.user_id = user.user_id
+      const files = await FileService.getFilesForModel(userInstance)
 
       return response.status(200).json({
         user_id: user.user_id,
         email: user.email,
         role: user.role,
         is_verified: user.is_verified,
+        files
       })
     } catch (error) {
       return response.status(500).json({
@@ -230,7 +235,7 @@ export default class AuthController {
     }
   }
 
-  async uploadAvatarMe({ request, response, auth }: HttpContext) {
+  async createAvatarMe({ request, response, auth }: HttpContext) {
     try {
       const user = auth.user
       if (!user) {
@@ -258,6 +263,32 @@ export default class AuthController {
       return response.status(500).json({
         message: 'Произошла ошибка при загрузке аватара.',
         error: error.message,
+      })
+    }
+  }
+
+  async deleteAvatarMe({ params, response }: HttpContext) {
+    try {
+      const fileId = await File.findOrFail(params.id)
+
+      const files = await FileService.getFilesForModel(fileId)
+
+      for (const file of files) {
+        await FileService.deleteFileForModel(fileId, file.file_id)
+      }
+
+      await fileId.delete()
+
+      return response.status(204).noContent()
+    } catch (error) {
+      if (error.message.includes('Row not found')) {
+        return response.status(404).json({
+          message: 'Такого аватара не существует!',
+        })
+      }
+      return response.status(500).json({
+        message: 'Произошла ошибка при удалении аватара.',
+        error: error.message
       })
     }
   }

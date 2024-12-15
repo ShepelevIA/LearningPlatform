@@ -50,9 +50,7 @@ export default class FileService {
   }
 
   public static async updateFileForModel(modelInstance: any, file_id: number, newFileUpload: any) {
-    // Удаляем старый файл
     await this.deleteFileForModel(modelInstance, file_id)
-    // Прикрепляем новый
     return this.attachFileToModel(modelInstance, newFileUpload)
   }
 }

@@ -26,8 +26,10 @@ router.group(() => {
     router.post('/register', [AuthController, 'register']).as('auth.register')
     router.post('/refreshToken', [AuthController, 'refreshToken']).as('auth.refreshToken')
     router.post('/logout', [AuthController, 'logout']).as('auth.logout').use(middleware.auth({ roles: ['admin', 'teacher', 'student'] }))
+
     router.get('/me', [AuthController, 'me']).as('auth.me').use(middleware.auth({ roles: ['admin', 'teacher', 'student'] }))
-    router.post('/uploadAvatarMe', [AuthController, 'uploadAvatarMe']).as('auth.uploadAvatarMe').use(middleware.auth({ roles: ['admin', 'teacher', 'student'] }))
+    router.post('/createAvatarMe', [AuthController, 'createAvatarMe']).as('auth.createAvatarMe').use(middleware.auth({ roles: ['admin', 'teacher', 'student'] }))
+    router.delete('/deleteAvatarMe/:id', [AuthController, 'deleteAvatarMe']).as('auth.deleteAvatarMe').use(middleware.auth({ roles: ['admin', 'teacher', 'student'] }))
 
   router.group(() => {
     router.get('/', [UsersController, 'index']).use(middleware.auth({ roles: ['admin'] }))
