@@ -6,7 +6,7 @@ export default class UsersController {
     /**
    * Display a list of resource
    */
-  public async index({ request, response }: HttpContext) {
+  async index({ request, response }: HttpContext) {
     try {
       const page = request.input('page', 1)
       const limit = request.input('limit', 10)

@@ -1,138 +1,230 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import hash from '@adonisjs/core/services/hash'
 import User from '#models/user'
+import Token from '#models/token'
+import { createHash } from 'crypto'
+import { AccessToken } from '@adonisjs/auth/access_tokens'
 
 export default class AuthController {
-  public async login({ request, response }: HttpContext) {
+  async login({ request, response }: HttpContext) {
     try {
       const { email, password } = request.only(['email', 'password'])
-      
-    const user = await User.query().where('email', email).first()
 
-    if (!user || !(await hash.verify(user.password, password))) {
-      return response.status(401).json({
-        message: 'Неправильный email или пароль',
-      })
-    }
+      const user = await User.query().where('email', email).first()
 
-      const access_token = await User.accessTokens.create(user)
-
-      const createToken = await User.find(user.user_id)
-
-      if (createToken) {
-        createToken.api_token = access_token.value?.release() ?? null
-        await createToken.save()
-      }
-
-      return response.status(200).json({
-        user_id: user.user_id, 
-        email: user.email, 
-        access_token: access_token.value?.release(), 
-        role: user.role 
-      })
-      
-    } catch (error) {
-      return response.status(500).json({
-        message: 'Ошибка авторизации',
-        error: error.message
-      })
-    }
-  }
-
-  public async register({ request, response }: HttpContext) {
-      try {
-        const { last_name, first_name, middle_name, email, role, password, confirmPassword } = request.only(['last_name', 'first_name', 'middle_name', 'email', 'role', 'password', 'confirmPassword'])
-
-        const allowedRoles = ['student', 'teacher', 'admin']
-
-        if (!allowedRoles.includes(role)) {
-          return response.status(400).json({
-            message: 'Неверная роль. Допустимые роли: student, teacher, admin.'
-          })
-        }
-
-
-        if (confirmPassword === password) {
-          const user = await User.create({
-            last_name: last_name,
-            first_name: first_name,
-            middle_name: middle_name,
-            email: email,
-            role: role,
-            password: password
-          })
-
-          return response.status(201).json({
-            message: 'Пользователь успешно зарегистрирован',
-            user: {
-              user_id: user.user_id,
-              last_name: user.last_name,
-              first_name: user.first_name,
-              middle_name: user.middle_name,
-              email: user.email,
-              role: user.role,
-              is_verified: false,
-              created_at: user.created_at,
-            },
-          })
-        }
-      } catch (error) {    
-        if (error.message.includes('Duplicate entry')) {
-          return response.status(400).json({
-            message: 'Пользователь с таким email уже существует.'
-          })
-        }
-        return response.status(500).json({
-          message: 'Ошибка авторизации',
-          error: error.message
+      if (!user || !(await hash.verify(user.password, password))) {
+        return response.status(401).json({
+          message: 'Неправильный email или пароль',
         })
       }
-  }
-  
-  public async logout({ auth, response }: HttpContext) {
-    try {
-      const user = auth.user
-  
-      if (!user) {
-        return response.status(401).json({ message: 'Пользователь не авторизован' })
-      }
-  
-      if (!user.currentAccessToken) {
-        return response.status(400).json({ message: 'Текущий токен доступа не найден' })
+
+      if (!user.is_verified) {
+        return response.status(403).json({
+          message: 'Ваш аккаунт не подтвержден',
+        })
       }
 
-      await User.accessTokens.delete(user, user.currentAccessToken.identifier)
-  
-      const deleteToken = await User.find(user.user_id)
-      if (deleteToken) {
-        deleteToken.api_token = null
-        await deleteToken.save()
-      }
-  
-      return response.status(204).json({ message: 'Пользователь вышел из системы' })
-  
-    } catch (error) {
-      return response.status(500).json({
-        message: 'Ошибка при выходе из системы',
-        error: error.message
-      })
-    }
-  }
+      const maxSessions = 5
 
-  public async me({ auth, response }: HttpContext) {
-    try {
-      const user = auth.user!
+      const tokens = await Token.query()
+        .where('tokenable_id', user.user_id)
+        .andWhere('type', 'refresh_token')
+        .orderBy('created_at', 'asc')
+      
+      if (tokens.length >= maxSessions) {
+        const tokensToDelete = tokens.slice(0, tokens.length - maxSessions + 1)
+      
+        for (const token of tokensToDelete) {
+          const createdAtSQL = token.createdAt?.toSQL({ includeOffset: false })
+      
+          if (createdAtSQL) {
+            
+          await Token.query()
+              .where('tokenable_id', user.user_id)
+              .andWhere('type', 'auth_token')
+              .andWhereRaw('created_at = ?', [createdAtSQL])
+              .delete()
+          }
+      
+          await token.delete()
+        }
+      }
+
+      const accessToken = await User.accessTokens.create(user)
+      const refreshToken = await User.refreshTokens.create(user)
+
       return response.status(200).json({
         user_id: user.user_id,
         email: user.email,
-        role: user.role
+        role: user.role,
+        access_token: accessToken.value?.release(),
+        refresh_token: refreshToken.value?.release(),
+      })
+    } catch (error) {
+      return response.status(500).json({
+        message: 'Ошибка авторизации',
+        error: error.message,
+      })
+    }
+  }
+
+  async register({ request, response }: HttpContext) {
+    try {
+      const {
+        last_name,
+        first_name,
+        middle_name,
+        email,
+        role,
+        password,
+        confirmPassword,
+      } = request.only(['last_name', 'first_name', 'middle_name', 'email', 'role', 'password', 'confirmPassword'])
+
+      const allowedRoles = ['student', 'teacher', 'admin']
+
+      if (!allowedRoles.includes(role)) {
+        return response.status(400).json({
+          message: 'Неверная роль. Допустимые роли: student, teacher, admin.',
+        })
+      }
+
+      if (password !== confirmPassword) {
+        return response.status(400).json({
+          message: 'Пароли не совпадают',
+        })
+      }
+
+      const user = await User.create({
+        last_name,
+        first_name,
+        middle_name,
+        email,
+        role,
+        password,
+        is_verified: false,
       })
 
+      return response.status(201).json({
+        message: 'Пользователь успешно зарегистрирован',
+        user: {
+          user_id: user.user_id,
+          last_name: user.last_name,
+          first_name: user.first_name,
+          middle_name: user.middle_name,
+          email: user.email,
+          role: user.role,
+          is_verified: user.is_verified,
+          created_at: user.created_at,
+        },
+      })
     } catch (error) {
-      console.error('Me error:', error)
+      if (error.message.includes('Duplicate entry')) {
+        return response.status(400).json({
+          message: 'Пользователь с таким email уже существует.',
+        })
+      }
       return response.status(500).json({
-        message: 'Ошибка получения личных данных',
-        error: error.message
+        message: 'Ошибка регистрации',
+        error: error.message,
+      })
+    }
+  }
+
+  async refreshToken({ request, response }: HttpContext) {
+    try {
+      const { refresh_token } = request.only(['refresh_token'])
+
+      if (!refresh_token) {
+        return response.badRequest({ message: 'Токен не предоставлен' })
+      }
+
+      const prefix = 'refresh_'
+      const decoded = AccessToken.decode(prefix, refresh_token)
+      if (!decoded) {
+        return response.unauthorized({ message: 'Недействительный токен' })
+      }
+
+      const { identifier, secret } = decoded
+
+      const hashedClientRefreshToken = createHash('sha256').update(secret.release()).digest('hex')
+
+      const tokenRecord = await Token.query()
+        .where('type', 'refresh_token')
+        .where('id', identifier)
+        .where('hash', hashedClientRefreshToken)
+        .first()
+
+      if (!tokenRecord) {
+        return response.unauthorized({ message: 'Недействительный токен' })
+      }
+
+      const user = await User.find(tokenRecord.tokenable_id)
+      if (!user) {
+        return response.unauthorized({ message: 'Пользователь не найден' })
+      }
+
+      const oldAccessToken = await Token.query()
+        .where('type', 'auth_token')
+        .where('tokenable_id', user.user_id)
+        .first()
+
+      if (oldAccessToken) {
+        await oldAccessToken.delete()
+      }
+
+      const newAccessToken = await User.accessTokens.create(user)
+
+      return response.status(200).json({
+        access_token: newAccessToken.value?.release(),
+      })
+    } catch (error) {
+      return response.status(500).json({
+        message: 'Ошибка обновления токена',
+        error: error.message,
+      })
+    }
+  }
+
+  async logout({ auth, response }: HttpContext) {
+    try {
+      const user = auth.user
+
+      if (!user || !user.currentAccessToken) {
+        return response.status(400).json({
+          message: 'Токен доступа отсутствует',
+        })
+      }
+
+      await User.accessTokens.delete(user, user.currentAccessToken.identifier)
+      await user.save()
+
+      return response.status(204).json({ message: 'Вы успешно вышли' })
+    } catch (error) {
+      return response.status(500).json({
+        message: 'Ошибка при выходе',
+        error: error.message,
+      })
+    }
+  }
+
+  async me({ auth, response }: HttpContext) {
+    try {
+      const user = auth.user
+
+      if (!user) {
+        return response.status(401).json({ message: 'Пользователь не авторизован' })
+      }
+
+      return response.status(200).json({
+        user_id: user.user_id,
+        email: user.email,
+        role: user.role,
+        is_verified: user.is_verified,
+      })
+    } catch (error) {
+      return response.status(500).json({
+        message: 'Ошибка получения данных',
+        error: error.message,
       })
     }
   }

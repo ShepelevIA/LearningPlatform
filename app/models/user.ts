@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import hash from '@adonisjs/core/services/hash'
 import { compose } from '@adonisjs/core/helpers'
-import { BaseModel, column} from '@adonisjs/lucid/orm'
+import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 
@@ -11,7 +11,6 @@ const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
 })
 
 export default class User extends compose(BaseModel, AuthFinder) {
-
   @column({ isPrimary: true })
   declare user_id: number
 
@@ -36,9 +35,6 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column()
   declare is_verified: boolean
 
-  @column()
-  declare api_token: string | null
-
   @column.dateTime({ autoCreate: true })
   declare created_at: DateTime
 
@@ -46,11 +42,18 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare updated_at: DateTime
 
   static accessTokens = DbAccessTokensProvider.forModel(User, {
-    expiresIn: '60days',
-    prefix: 'oat_',
+    expiresIn: '30m',
+    prefix: 'access_',
     table: 'auth_access_tokens',
     type: 'auth_token',
     tokenSecretLength: 40,
   })
 
+  static refreshTokens = DbAccessTokensProvider.forModel(User, {
+    expiresIn: '7d',
+    prefix: 'refresh_',
+    table: 'auth_access_tokens',
+    type: 'refresh_token',
+    tokenSecretLength: 40,
+  })
 }

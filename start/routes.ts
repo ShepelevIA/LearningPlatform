@@ -21,10 +21,10 @@ import FilesController from '#controllers/files_controller'
 import AuthController from '#controllers/auth_controller'
 
 router.group(() => {
-
   router.group(() => {
     router.post('/login', [AuthController, 'login']).as('auth.login')
     router.post('/register', [AuthController, 'register']).as('auth.register')
+    router.post('/refreshToken', [AuthController, 'refreshToken']).as('auth.refreshToken')
     router.post('/logout', [AuthController, 'logout']).as('auth.logout').use(middleware.auth({ roles: ['admin', 'teacher', 'student'] }))
     router.get('/me', [AuthController, 'me']).as('auth.me').use(middleware.auth({ roles: ['admin', 'teacher', 'student'] }))
 

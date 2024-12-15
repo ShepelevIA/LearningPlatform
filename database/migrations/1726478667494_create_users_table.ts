@@ -13,7 +13,6 @@ export default class Users extends BaseSchema {
       table.string('password', 255).notNullable()
       table.enu('role', ['student', 'teacher', 'admin']).notNullable()
       table.boolean('is_verified').defaultTo(false)
-      table.string('api_token', 128).nullable()
       table.timestamp('created_at', { useTz: true }).notNullable()
       table.timestamp('updated_at', { useTz: true }).notNullable()
     })
