@@ -14,6 +14,9 @@ export default class File extends BaseModel {
   @column()
   declare file_url: string
 
+  @column()
+  declare user_id: number 
+
   @column.dateTime({ autoCreate: true })
   declare created_at: DateTime
 

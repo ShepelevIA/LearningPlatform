@@ -9,6 +9,7 @@ export default class Files extends BaseSchema {
       table.string('resource_type', 50).notNullable()
       table.integer('resource_id').unsigned().notNullable()
       table.string('file_url', 255).notNullable()
+      table.integer('user_id').unsigned().notNullable()
       table.timestamp('created_at', { useTz: true }).notNullable().defaultTo(this.now())
       table.timestamp('updated_at', { useTz: true }).notNullable().defaultTo(this.now())
     })

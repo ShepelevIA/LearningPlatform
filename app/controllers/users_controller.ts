@@ -1,6 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import User from '#models/user'
-import FileService from '#services/fileService'
 
 export default class UsersController {
     /**
@@ -19,21 +18,16 @@ export default class UsersController {
       }
 
       const paginatedUsers = await query.paginate(page, limit)
-      const response_users = paginatedUsers.toJSON()
+      const users = paginatedUsers.toJSON()
 
-      for (const user of response_users.data) {
-        const userInstance = new User()
-        userInstance.user_id = user.user_id
-        const files = await FileService.getFilesForModel(userInstance)
-        user.files = files.map((file) => ({
-          file_id: file.file_id,
-          file_url: file.file_url,
-          created_at: file.created_at,
-          updated_at: file.updated_at,
-        }))
-      }
+      return response.status(200).json({
+        meta: users.meta,
+        data: users.data,
+        file_filters: {
+          resource_id: users.data.map((user) => user.user_id),
+        },
+      })
 
-      return response.status(200).json(response_users)
     } catch (error) {
 
       return response.status(500).json({
@@ -59,15 +53,6 @@ export default class UsersController {
       const user = await User.create(data)
       await user.save()
 
-      const fileUpload = request.file('file')
-      console.log(fileUpload)
-      
-      if (fileUpload) {
-        await FileService.attachFileToModel(user, fileUpload)
-      }
-
-      const files = await FileService.getFilesForModel(user)
-
       return response.status(201).json({
         message: 'Пользователь успешно создан!',
         user_id: user.user_id,
@@ -78,12 +63,7 @@ export default class UsersController {
         role: user.role,
         created_at: user.created_at,
         updated_at: user.updated_at,
-        files: files.map((file) => ({
-          file_id: file.file_id,
-          file_url: file.file_url,
-          created_at: file.created_at,
-          updated_at: file.updated_at
-        }))
+ 
       })
     } catch (error) {
       if (error.message.includes('Duplicate entry')) {
@@ -104,7 +84,7 @@ export default class UsersController {
     try {
       const user = await User.findOrFail(params.id)
 
-      const files = await FileService.getFilesForModel(user)
+   
 
       return response.status(200).json({
         user_id: user.user_id,
@@ -115,12 +95,7 @@ export default class UsersController {
         role: user.role,
         created_at: user.created_at,
         updated_at: user.updated_at,
-        files: files.map((file) => ({
-          file_id: file.file_id,
-          file_url: file.file_url,
-          created_at: file.created_at,
-          updated_at: file.updated_at
-        }))
+
       })
     } catch (error) {
       if(error.message.includes('Row not found')) {
@@ -158,13 +133,6 @@ export default class UsersController {
   
       await user.save()
 
-      const fileUpload = request.file('file')
-      if (fileUpload) {
-        await FileService.attachFileToModel(user, fileUpload)
-      }
-
-      const files = await FileService.getFilesForModel(user)
-
       return response.status(200).json({
         message: 'Данные пользователя успешно обновлены!',
         user_id: user.user_id,
@@ -175,12 +143,7 @@ export default class UsersController {
         role: user.role,
         created_at: user.created_at,
         updated_at: user.updated_at,
-        files: files.map((file) => ({
-          file_id: file.file_id,
-          file_url: file.file_url,
-          created_at: file.created_at,
-          updated_at: file.updated_at
-        }))
+  
       }) 
     } catch (error) {
       if(error.message.includes('Row not found')) {
@@ -206,11 +169,7 @@ export default class UsersController {
     try {
       const user = await User.findOrFail(params.id)
 
-      const files = await FileService.getFilesForModel(user)
 
-      for (const file of files) {
-        await FileService.deleteFileForModel(user, file.file_id)
-      }
 
       await user.delete()
 

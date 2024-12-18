@@ -3,7 +3,6 @@ import Assignment from '#models/assignment'
 import Module from '#models/module'
 import Course from '#models/course'
 import Enrollment from '#models/enrollment'
-import FileService from '#services/fileService'
 
 export default class AssignmentsController {
   /**
@@ -60,18 +59,6 @@ export default class AssignmentsController {
   
       const paginatedAssignmentsJson = paginatedAssignments.toJSON()
 
-      for (const assignment of paginatedAssignmentsJson.data) {
-        const assignmentInstance = new Assignment()
-        assignmentInstance.assignment_id = assignment.assignment_id
-        const files = await FileService.getFilesForModel(assignmentInstance)
-        assignment.files = files.map(file => ({
-          file_id: file.file_id,
-          file_url: file.file_url,
-          created_at: file.created_at,
-          updated_at: file.updated_at
-        }))
-      }
-
       paginatedAssignmentsJson.data = paginatedAssignmentsJson.data.map(assignment => {
         return {
           assignment_id: assignment.assignment_id,
@@ -99,11 +86,17 @@ export default class AssignmentsController {
           },
           created_at: assignment.created_at,
           updated_at: assignment.updated_at,
-          files: assignment.files
         }
       })
+
+      const resource_id = paginatedAssignmentsJson.data.map(assignment => assignment.assignment_id)
     
-      return response.status(200).json(paginatedAssignmentsJson)
+      return response.status(200).json({
+        paginatedAssignmentsJson,
+        file_filters: {
+          resource_id
+        },
+      })
     } catch (error) {
       return response.status(500).json({
         message: 'Произошла ошибка при получении списка заданий.',
@@ -153,13 +146,6 @@ export default class AssignmentsController {
       })
     
       await assignment.save()
-  
-      const fileUpload = request.file('file')
-      if (fileUpload) {
-        await FileService.attachFileToModel(assignment, fileUpload)
-      }
-  
-      const files = await FileService.getFilesForModel(assignment)
     
       return response.status(201).json({
         message: 'Задание успешно создано!',
@@ -168,13 +154,7 @@ export default class AssignmentsController {
         description: assignment.description,
         due_date: assignment.due_date,
         created_at: assignment.created_at,
-        updated_at: assignment.updated_at,
-        files: files.map(file => ({
-          file_id: file.file_id,
-          file_url: file.file_url,
-          created_at: file.created_at,
-          updated_at: file.updated_at
-        }))
+        updated_at: assignment.updated_at
       })
     } catch (error) {
       return response.status(500).json({
@@ -255,7 +235,6 @@ export default class AssignmentsController {
 
       const assignmentInstance = new Assignment()
       assignmentInstance.assignment_id = assignment.assignment_id
-      const files = await FileService.getFilesForModel(assignmentInstance)
   
       return response.status(200).json({
         assignment_id: assignment.assignment_id,
@@ -280,13 +259,7 @@ export default class AssignmentsController {
           }
         },
         created_at: assignment.created_at,
-        updated_at: assignment.updated_at,
-        files: files.map(file => ({
-          file_id: file.file_id,
-          file_url: file.file_url,
-          created_at: file.created_at,
-          updated_at: file.updated_at
-        }))
+        updated_at: assignment.updated_at
       })
     } catch (error) {
       if (error.status) {
@@ -358,13 +331,6 @@ export default class AssignmentsController {
   
       await assignment.save()
   
-      const fileUpload = request.file('file')
-      if (fileUpload) {
-        await FileService.attachFileToModel(assignment, fileUpload)
-      }
-  
-      const files = await FileService.getFilesForModel(assignment)
-  
       return response.status(200).json({
         message: 'Задание успешно обновлено!',
         assignment_id: assignment.assignment_id,
@@ -372,12 +338,6 @@ export default class AssignmentsController {
         description: assignment.description,
         due_date: assignment.due_date,
         updated_at: assignment.updated_at,
-        files: files.map(file => ({
-          file_id: file.file_id,
-          file_url: file.file_url,
-          created_at: file.created_at,
-          updated_at: file.updated_at
-        }))
       })
     } catch (error) {
       if (error.message.includes('Row not found')) {
@@ -411,12 +371,6 @@ export default class AssignmentsController {
         return response.status(403).json({
           message: 'Доступ запрещен. Вы можете удалять задания только для своих курсов.'
         })
-      }
-
-      // Удаляем файлы, связанные с заданием
-      const files = await FileService.getFilesForModel(assignment)
-      for (const file of files) {
-        await FileService.deleteFileForModel(assignment, file.file_id)
       }
   
       await assignment.delete()
