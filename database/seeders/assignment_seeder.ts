@@ -10,7 +10,6 @@ export default class AssignmentSeeder extends BaseSeeder {
       module_id: number
       title: string
       description: string
-      due_date: Date
       created_at: DateTime
       updated_at: DateTime
     }[] = []
@@ -22,7 +21,6 @@ export default class AssignmentSeeder extends BaseSeeder {
         module_id: faker.helpers.arrayElement(modules).module_id,
         title: faker.lorem.words(3),
         description: faker.lorem.paragraph(),
-        due_date: DateTime.now().plus({ days: faker.number.int({ min: 1, max: 30 }) }).toJSDate(),
         created_at: DateTime.now(),
         updated_at: DateTime.now(),
       })

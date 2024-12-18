@@ -9,7 +9,6 @@ export default class Assignments extends BaseSchema {
       table.integer('module_id').unsigned().notNullable().references('module_id').inTable('modules').onDelete('CASCADE')
       table.string('title', 255).notNullable()
       table.text('description')
-      table.date('due_date')
       table.timestamp('created_at', { useTz: true }).notNullable()
       table.timestamp('updated_at', { useTz: true }).notNullable()
     })

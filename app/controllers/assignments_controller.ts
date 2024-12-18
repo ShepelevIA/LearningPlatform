@@ -4,6 +4,8 @@ import Module from '#models/module'
 import Course from '#models/course'
 import Enrollment from '#models/enrollment'
 
+import { createAssignmentsValidator, updateAssignmentsValidator } from '#validators/assignment'
+
 export default class AssignmentsController {
   /**
    * Display a list of assignments with files
@@ -117,6 +119,15 @@ export default class AssignmentsController {
       }
     
       const data = request.only(['module_id', 'title', 'description', 'due_date'])
+
+      try {
+        await createAssignmentsValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
+        })
+      }
     
       const module = await Module.findOrFail(data.module_id)
       const course = await Course.findOrFail(module.course_id)
