@@ -295,7 +295,7 @@ export default class AssignmentsController {
       const data = request.only(['title', 'description', 'due_date', 'module_id'])
 
       try {
-        await createAssignmentsValidator.validate(data)
+        await updateAssignmentsValidator.validate(data)
       } catch (validationError) {
         return response.status(422).json({
           message: 'Ошибка валидации данных',

@@ -5,14 +5,25 @@ import Token from '#models/token'
 import { createHash } from 'crypto'
 import { AccessToken } from '@adonisjs/auth/access_tokens'
 
+import { loginValidator, registerValidator } from '#validators/auth'
+
 export default class AuthController {
   async login({ request, response }: HttpContext) {
     try {
-      const { email, password } = request.only(['email', 'password'])
+      const data = request.only(['email', 'password'])
 
-      const user = await User.query().where('email', email).first()
+      try {
+        await loginValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
+        })
+      }
 
-      if (!user || !(await hash.verify(user.password, password))) {
+      const user = await User.query().where('email', data.email).first()
+
+      if (!user || !(await hash.verify(user.password, data.password))) {
         return response.status(401).json({
           message: 'Неправильный email или пароль',
         })
@@ -70,37 +81,38 @@ export default class AuthController {
 
   async register({ request, response }: HttpContext) {
     try {
-      const {
-        last_name,
-        first_name,
-        middle_name,
-        email,
-        role,
-        password,
-        confirmPassword,
-      } = request.only(['last_name', 'first_name', 'middle_name', 'email', 'role', 'password', 'confirmPassword'])
+      const data = request.only(['last_name', 'first_name', 'middle_name', 'email', 'role', 'password', 'confirmPassword'])
+
+      try {
+        await registerValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
+        })
+      }
 
       const allowedRoles = ['student', 'teacher', 'admin']
 
-      if (!allowedRoles.includes(role)) {
+      if (!allowedRoles.includes(data.role)) {
         return response.status(400).json({
           message: 'Неверная роль. Допустимые роли: student, teacher, admin.',
         })
       }
 
-      if (password !== confirmPassword) {
+      if (data.password !== data.confirmPassword) {
         return response.status(400).json({
           message: 'Пароли не совпадают',
         })
       }
 
       const user = await User.create({
-        last_name,
-        first_name,
-        middle_name,
-        email,
-        role,
-        password,
+        last_name: data.last_name,
+        first_name: data.first_name,
+        middle_name: data.middle_name,
+        email: data.email,
+        role: data.role,
+        password: data.password,
         is_verified: false,
       })
 
