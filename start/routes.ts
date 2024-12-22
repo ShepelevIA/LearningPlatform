@@ -11,7 +11,7 @@ import { middleware } from './kernel.js'
 
 import UsersController from '#controllers/users_controller'
 import CoursesController from '#controllers/courses_controller'
-import EnrollmentsController from '#controllers/enrollments_controller'
+import EnrollmentsController from '#controllers/enrlloments_controller'
 import ModulesController from '#controllers/modules_controller'
 import ProgressController from '#controllers/progress_controller'
 import CommentsController from '#controllers/comments_controller'
@@ -48,8 +48,8 @@ router.group(() => {
     router.get('/', [EnrollmentsController, 'index']).use(middleware.auth({ roles: ['admin', 'teacher'] }))
     router.post('/create', [EnrollmentsController, 'create']).use(middleware.auth({ roles: ['admin', 'student'] }))
     router.get('/show/:id', [EnrollmentsController, 'show']).use(middleware.auth({ roles: ['admin', 'teacher'] }))
-    router.patch('/update/:id', [EnrollmentsController, 'update']).use(middleware.auth({ roles: ['admin', 'student'] }))
-    router.delete('/destroy/:id', [EnrollmentsController, 'destroy']).use(middleware.auth({ roles: ['admin', 'student'] }))
+    router.patch('/update/:id', [EnrollmentsController, 'update']).use(middleware.auth({ roles: ['admin', 'teacher'] }))
+    router.delete('/destroy/:id', [EnrollmentsController, 'destroy']).use(middleware.auth({ roles: ['admin', 'teacher'] }))
   }).prefix('enrollments')
 
   router.group(() => {

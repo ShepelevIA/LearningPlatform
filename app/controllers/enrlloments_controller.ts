@@ -3,6 +3,8 @@ import Enrollment from '#models/enrollment'
 import User from '#models/user'
 import Course from '#models/course'
 
+import { enrllomentsValidator } from '#validators/enrlloment'
+
 export default class EnrollmentsController {
   /**
    * Display a list of resource
@@ -104,6 +106,15 @@ export default class EnrollmentsController {
       }
 
       const data = request.only(['student_id', 'course_id'])
+
+      try {
+        await enrllomentsValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
+        })
+      }
 
       if (user.role === 'student' && user.user_id != data.student_id) {
         return response.status(403).json({
@@ -281,21 +292,43 @@ export default class EnrollmentsController {
   
       const data: { student_id?: number; course_id: number } = request.only(['student_id', 'course_id'])
   
+      try {
+        await enrllomentsValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
+        })
+      }
+  
       const enrollmentId = params.id
-
+  
       const enrollment = await Enrollment.findOrFail(enrollmentId)
   
-
-      if (user.role === 'student') {
-        console.log(data.student_id)
-        
-        if (data.student_id != user.user_id) {
+      if (user.role === 'teacher') {
+        const teacherCourse = await Course.query()
+          .where('course_id', enrollment.course_id)
+          .andWhere('teacher_id', user.user_id)
+          .first()
+  
+        if (!teacherCourse) {
           return response.status(403).json({
-            message: 'Доступ запрещен. Вы можете обновлять только свои записи.'
+            message: 'Доступ запрещен. Вы можете обновлять только записи своих студентов.',
           })
         }
-
-        data.student_id = user.user_id
+  
+        if (data.student_id && data.student_id !== enrollment.student_id) {
+          const isStudentInCourse = await Enrollment.query()
+            .where('student_id', data.student_id)
+            .andWhere('course_id', data.course_id)
+            .first()
+  
+          if (!isStudentInCourse) {
+            return response.status(403).json({
+              message: 'Доступ запрещен. Указанный студент не записан на ваш курс.',
+            })
+          }
+        }
       }
   
       if (user.role === 'admin' && data.student_id && data.student_id !== enrollment.student_id) {
@@ -306,14 +339,13 @@ export default class EnrollmentsController {
   
         if (existingEnrollment) {
           return response.status(400).json({
-            message: 'Студент уже записан на этот курс.'
+            message: 'Студент уже записан на этот курс.',
           })
         }
   
         enrollment.student_id = data.student_id
       }
   
-
       const existingEnrollment = await Enrollment.query()
         .where('student_id', enrollment.student_id)
         .andWhere('course_id', data.course_id)
@@ -322,11 +354,10 @@ export default class EnrollmentsController {
   
       if (existingEnrollment) {
         return response.status(400).json({
-          message: 'Студент уже записан на этот курс.'
+          message: 'Студент уже записан на этот курс.',
         })
       }
   
-   
       enrollment.course_id = data.course_id
   
       const updatedCourse = await Course.findOrFail(data.course_id)
@@ -344,7 +375,7 @@ export default class EnrollmentsController {
           first_name: student.first_name,
           middle_name: student.middle_name,
           email: student.email,
-          role: student.role
+          role: student.role,
         },
         course: {
           course_id: updatedCourse.course_id,
@@ -356,11 +387,11 @@ export default class EnrollmentsController {
             first_name: teacher.first_name,
             middle_name: teacher.middle_name,
             email: teacher.email,
-            role: teacher.role
-          }
+            role: teacher.role,
+          },
         },
         created_at: enrollment.created_at,
-        updated_at: enrollment.updated_at
+        updated_at: enrollment.updated_at,
       })
     } catch (error) {
       if (error.message.includes('Row not found')) {
@@ -370,7 +401,7 @@ export default class EnrollmentsController {
       }
       return response.status(500).json({
         message: 'Произошла ошибка при обновлении записи на курс.',
-        error: error.message
+        error: error.message,
       })
     }
   }
@@ -390,8 +421,21 @@ export default class EnrollmentsController {
   
       if (user.role === 'student' && enrollment.student_id !== user.user_id) {
         return response.status(403).json({
-          message: 'Доступ запрещен. Вы можете удалять только свои записи.'
+          message: 'Доступ запрещен. Вы можете удалять только свои записи.',
         })
+      }
+  
+      if (user.role === 'teacher') {
+        const teacherCourse = await Course.query()
+          .where('course_id', enrollment.course_id)
+          .andWhere('teacher_id', user.user_id)
+          .first()
+  
+        if (!teacherCourse) {
+          return response.status(403).json({
+            message: 'Доступ запрещен. Вы можете удалять только записи студентов, которые записаны на ваши курсы.',
+          })
+        }
       }
   
       await enrollment.delete()
@@ -406,7 +450,7 @@ export default class EnrollmentsController {
   
       return response.status(500).json({
         message: 'Произошла ошибка при удалении записи на курс.',
-        error: error.message
+        error: error.message,
       })
     }
   }
