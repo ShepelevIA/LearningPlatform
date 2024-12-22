@@ -153,7 +153,6 @@ export default class AssignmentsController {
         module_id: data.module_id,
         title: data.title,
         description: data.description,
-        due_date: data.due_date
       })
     
       await assignment.save()
@@ -163,7 +162,6 @@ export default class AssignmentsController {
         assignment_id: assignment.assignment_id,
         title: assignment.title,
         description: assignment.description,
-        due_date: assignment.due_date,
         created_at: assignment.created_at,
         updated_at: assignment.updated_at
       })
@@ -295,6 +293,15 @@ export default class AssignmentsController {
       }
   
       const data = request.only(['title', 'description', 'due_date', 'module_id'])
+
+      try {
+        await createAssignmentsValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
+        })
+      }
   
       const assignment = await Assignment.findOrFail(params.id)
   
@@ -337,8 +344,6 @@ export default class AssignmentsController {
       }
   
       assignment.title = data.title
-      assignment.description = data.description
-      assignment.due_date = data.due_date
   
       await assignment.save()
   
@@ -346,8 +351,7 @@ export default class AssignmentsController {
         message: 'Задание успешно обновлено!',
         assignment_id: assignment.assignment_id,
         title: assignment.title,
-        description: assignment.description,
-        due_date: assignment.due_date,
+        description: data.description|| assignment.description,
         updated_at: assignment.updated_at,
       })
     } catch (error) {
