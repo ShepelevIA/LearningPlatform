@@ -4,6 +4,8 @@ import Module from '#models/module'
 import Enrollment from '#models/enrollment'
 import Course from '#models/course'
 
+import { createCommentsValidator, updateCommentsValidator } from '#validators/comment'
+
 export default class CommentsController {
   /**
    * Display a list of comments
@@ -99,6 +101,15 @@ export default class CommentsController {
       }
   
       const data = request.only(['module_id', 'content'])
+
+      try {
+        await createCommentsValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
+        })
+      }
   
       const module = await Module.query().where('module_id', data.module_id).first()
       if (!module) {
@@ -293,6 +304,15 @@ export default class CommentsController {
       }
   
       const data = request.only(['content'])
+
+      try {
+        await updateCommentsValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
+        })
+      }
   
       const comment = await Comment.findOrFail(params.id)
   
