@@ -3,6 +3,8 @@ import Course from '#models/course'
 import User from '#models/user'
 import Enrollment from '#models/enrollment'
 
+import { courseValidator } from '#validators/course'
+
 export default class CoursesController {
   /**
    * Display a list of resource
@@ -87,20 +89,18 @@ export default class CoursesController {
 
       const data = request.only(['title', 'description', 'teacher_id'])
 
-      if (user.role === 'teacher' && user.user_id != data.teacher_id) {
-        return response.status(403).json({
-          message: 'Доступ запрещен. Вы можете создавать записи только под своим аккаунтом.'
+      try {
+        await courseValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
         })
       }
 
-      const existingCourse = await Course.query()
-        .where('title', data.title)
-        .andWhere('teacher_id', data.teacher_id)
-        .first()
-  
-      if (existingCourse) {
-        return response.status(400).json({
-          message: 'Преподаватель уже имеет курс с таким названием.'
+      if (user.role === 'teacher' && user.user_id != data.teacher_id) {
+        return response.status(403).json({
+          message: 'Доступ запрещен. Вы можете создавать записи только под своим аккаунтом.'
         })
       }
 
@@ -230,6 +230,15 @@ export default class CoursesController {
       }
   
       const data = request.only(['title', 'description', 'teacher_id'])
+
+      try {
+        await courseValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
+        })
+      }
   
       const course = await Course.findOrFail(params.id)
   
@@ -244,18 +253,6 @@ export default class CoursesController {
             message: 'Вы не можете изменить преподавателя курса.'
           })
         }
-      }
-  
-      const existingCourse = await Course.query()
-        .where('title', data.title)
-        .andWhere('teacher_id', data.teacher_id || course.teacher_id)
-        .andWhereNot('course_id', course.course_id)
-        .first()
-  
-      if (existingCourse) {
-        return response.status(400).json({
-          message: 'Преподаватель уже имеет курс с таким названием.'
-        })
       }
   
       course.title = data.title
