@@ -1,6 +1,8 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import User from '#models/user'
 
+import { userValidator } from '#validators/user'
+
 export default class UsersController {
     /**
    * Display a list of resource
@@ -41,16 +43,25 @@ export default class UsersController {
    */
   async create({ request, response }: HttpContext) {
     try {
-      const data = request.only(['last_name', 'first_name', 'middle_name', 'email', 'password', 'role'])
-      const allowedRoles = ['student', 'teacher', 'admin']
+      const data = request.only(['last_name', 'first_name', 'middle_name', 'email', 'password', 'confirmPassword', 'role'])
 
-      if (!allowedRoles.includes(data.role)) {
-        return response.status(400).json({
-          message: 'Неверная роль. Допустимые роли: student, teacher, admin.'
+      try {
+        await userValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
         })
       }
 
-      const user = await User.create(data)
+      const user = await User.create({
+        last_name: data.last_name,
+        first_name: data.first_name,
+        middle_name: data.middle_name,
+        email: data.email,
+        password: data.password,
+        role: data.role
+      })
       await user.save()
 
       return response.status(201).json({
@@ -114,12 +125,14 @@ export default class UsersController {
    */
   async update({ params, request, response }: HttpContext) {
     try {
-      const data = request.only(['last_name', 'first_name', 'middle_name', 'email', 'password', 'role'])
-      const allowedRoles = ['student', 'teacher', 'admin']
+      const data = request.only(['last_name', 'first_name', 'middle_name', 'email', 'password', 'confirmPassword', 'role'])
 
-      if (!allowedRoles.includes(data.role)) {
-        return response.status(400).json({
-          message: 'Неверная роль. Допустимые роли: student, teacher, admin.'
+      try {
+        await userValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
         })
       }
 
