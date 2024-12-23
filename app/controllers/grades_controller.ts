@@ -213,7 +213,6 @@ export default class GradesController {
             module_id: module.module_id,
             title: module.title,
             content: module.content,
-            order: module.order,
             course: {
               course_id: course.course_id,
               title: course.title,
@@ -459,7 +458,6 @@ export default class GradesController {
             module_id: module.module_id,
             title: module.title,
             content: module.content,
-            order: module.order,
             course: {
               course_id: course.course_id,
               title: course.title,

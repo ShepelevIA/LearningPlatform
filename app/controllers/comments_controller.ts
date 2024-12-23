@@ -155,7 +155,6 @@ export default class CommentsController {
           module_id: module.module_id,
           title: module.title,
           content: module.content,
-          order: module.order,
         },
         user: {
           user_id: user.user_id,

@@ -5,6 +5,8 @@ import Module from '#models/module'
 import Course from '#models/course'
 import Enrollment from '#models/enrollment'
 
+import { createProgressValidator, updateProgressValidator } from '#validators/progress'
+
 export default class ProgressController {
   /**
    * Display a list of progress
@@ -119,6 +121,15 @@ export default class ProgressController {
       }
   
       const data = request.only(['student_id', 'module_id', 'status'])
+
+      try {
+        await createProgressValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
+        })
+      }
   
       const student = await User.findOrFail(data.student_id)
       if (student.role !== 'student') {
@@ -211,7 +222,6 @@ export default class ProgressController {
           module_id: module.module_id,
           title: module.title,
           content: module.content,
-          order: module.order,
           course: {
             course_id: course.course_id,
             title: course.title,
@@ -367,6 +377,15 @@ export default class ProgressController {
 
       const data = request.only(['status'])
 
+      try {
+        await updateProgressValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
+        })
+      }
+
       const progress = await Progress.findOrFail(params.id)
 
       const module = await Module.findOrFail(progress.module_id)
@@ -399,7 +418,6 @@ export default class ProgressController {
         module: {
           module_id: module.module_id,
           title: module.title,
-          order: module.order,
           course: {
             course_id: course.course_id,
             title: course.title,
