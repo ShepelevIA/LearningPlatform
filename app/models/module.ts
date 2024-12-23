@@ -14,9 +14,6 @@ export default class Module extends BaseModel {
   @column()
   declare content: string
 
-  @column()
-  declare order: number
-
   @column.dateTime({ autoCreate: true })
   declare created_at: DateTime
 

@@ -4,6 +4,8 @@ import Course from '#models/course'
 import User from '#models/user'
 import Enrollment from '#models/enrollment'
 
+import { moduleValidator } from '#validators/module'
+
 export default class ModulesController {
   /**
    * Display a list of modules
@@ -96,7 +98,16 @@ export default class ModulesController {
         return response.status(401).json({ message: 'Пользователь не аутентифицирован' })
       }
 
-      const data = request.only(['title', 'course_id', 'content', 'order'])
+      const data = request.only(['title', 'course_id', 'content'])
+
+      try {
+        await moduleValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
+        })
+      }
       
       const course = await Course.findOrFail(data.course_id)
       if (user.role === 'teacher' && course.teacher_id !== user.user_id) {
@@ -126,7 +137,6 @@ export default class ModulesController {
         module_id: module.module_id,
         title: module.title,
         content: module.content,
-        order: module.order,
         course: {
           course_id: course.course_id,
           title: course.title,
@@ -222,7 +232,6 @@ export default class ModulesController {
         module_id: module.module_id,
         title: module.title,
         content: module.content,
-        order: module.order,
         course: {
           course_id: module.course_id,
           title: module.$extras.course_title,
@@ -263,8 +272,18 @@ export default class ModulesController {
         return response.status(401).json({ message: 'Пользователь не аутентифицирован' })
       }
 
-      const data = request.only(['title', 'course_id', 'content', 'order'])
       const moduleId = params.id
+
+      const data = request.only(['title', 'course_id', 'content'])
+
+      try {
+        await moduleValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
+        })
+      }
 
       const module = await Module.findOrFail(moduleId)
 
@@ -290,7 +309,6 @@ export default class ModulesController {
       module.title = data.title
       module.course_id = data.course_id
       module.content = data.content
-      module.order = data.order
  
       await module.save()
 
@@ -301,7 +319,6 @@ export default class ModulesController {
         module_id: module.module_id,
         title: module.title,
         content: module.content,
-        order: Number(module.order),
         course: {
           course_id: course.course_id,
           title: course.title,

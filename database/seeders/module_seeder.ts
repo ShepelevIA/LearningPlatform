@@ -10,7 +10,6 @@ export default class ModuleSeeder extends BaseSeeder {
       course_id: number
       title: string
       content: string
-      order: number
       created_at: DateTime
       updated_at: DateTime
     }[] = []
@@ -22,7 +21,6 @@ export default class ModuleSeeder extends BaseSeeder {
         course_id: faker.helpers.arrayElement(courses).course_id,
         title: faker.lorem.words(2),
         content: faker.lorem.paragraph(),
-        order: i + 1,
         created_at: DateTime.now(),
         updated_at: DateTime.now(),
       })

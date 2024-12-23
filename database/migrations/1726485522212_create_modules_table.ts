@@ -9,7 +9,6 @@ export default class Modules extends BaseSchema {
       table.integer('course_id').unsigned().notNullable().references('course_id').inTable('courses').onDelete('CASCADE')
       table.string('title', 255).notNullable()
       table.text('content')
-      table.integer('order').notNullable()
       table.timestamp('created_at', { useTz: true }).notNullable()
       table.timestamp('updated_at', { useTz: true }).notNullable()
     })
