@@ -6,6 +6,8 @@ import Module from '#models/module'
 import Course from '#models/course'
 import Enrollment from '#models/enrollment'
 
+import { createGradeValidator, updateGradeValidator } from '#validators/grade'
+
 export default class GradesController {
   /**
    * Display a list of resource
@@ -129,6 +131,15 @@ export default class GradesController {
       }
     
       const data = request.only(['student_id', 'assignment_id', 'grade', 'feedback'])
+
+      try {
+        await createGradeValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
+        })
+      }
     
       const student = await User.findOrFail(data.student_id)
       const assignment = await Assignment.findOrFail(data.assignment_id)
@@ -183,7 +194,7 @@ export default class GradesController {
       return response.status(201).json({
         message: 'Оценка успешно создана!',
         grade_id: grade.grade_id,
-        grade: grade.grade,
+        grade: +grade.grade,
         feedback: grade.feedback,
         student: {
           student_id: student.user_id,
@@ -383,6 +394,15 @@ export default class GradesController {
       }
   
       const data = request.only(['grade', 'feedback'])
+
+      try {
+        await updateGradeValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
+        })
+      }
   
       const grade = await Grade.findOrFail(params.id)
   
@@ -420,7 +440,7 @@ export default class GradesController {
       return response.status(200).json({
         message: 'Оценка успешно обновлена!',
         grade_id: grade.grade_id,
-        grade: Number(grade.grade),
+        grade: +grade.grade,
         feedback: grade.feedback,
         student: {
           student_id: student.user_id,

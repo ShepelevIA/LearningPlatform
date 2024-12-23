@@ -163,8 +163,7 @@ export default class FilesController {
           errors: validationError.messages,
         })
       }
-
-  
+      
       const updatedFile = await FileService.updateFileForModel(
         user,
         fileUpload,
