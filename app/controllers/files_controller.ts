@@ -1,7 +1,8 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import File from '#models/file'
 import FileService from '#services/fileService'
 import RoleFileService from '#services/roleFileService'
+
+import { createFileValidator, updateFileValidator } from '#validators/file'
 
 export default class FilesController {
   /**
@@ -66,6 +67,20 @@ export default class FilesController {
   
       const data = request.only(['resource_type', 'resource_id'])
       const fileUpload = request.file('file')
+
+      const combinedData = {
+        ...data,
+        file: fileUpload,
+      }
+
+      try {
+        await createFileValidator.validate(combinedData)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
+        })
+      }
   
       if (!fileUpload) {
         return response.status(400).json({ message: 'Файл не загружен' })
@@ -135,6 +150,19 @@ export default class FilesController {
       const fileId = params.id
   
       const fileUpload = request.file('file')
+
+      const data = {
+        file: fileUpload,
+      }
+
+      try {
+        await updateFileValidator.validate(data)
+      } catch (validationError) {
+        return response.status(422).json({
+          message: 'Ошибка валидации данных',
+          errors: validationError.messages,
+        })
+      }
 
   
       const updatedFile = await FileService.updateFileForModel(
