@@ -104,9 +104,9 @@ export default class EnrollmentsController {
       if (!user) {
         return response.status(401).json({ message: 'Пользователь не аутентифицирован' })
       }
-
+  
       const data = request.only(['student_id', 'course_id'])
-
+  
       try {
         await enrllomentsValidator.validate(data)
       } catch (validationError) {
@@ -115,11 +115,20 @@ export default class EnrollmentsController {
           errors: validationError.messages,
         })
       }
-
+  
       if (user.role === 'student' && user.user_id != data.student_id) {
         return response.status(403).json({
-          message: 'Доступ запрещен. Вы можете записатся на курс только под своим аккаунтом.'
+          message: 'Доступ запрещен. Вы можете записаться на курс только под своим аккаунтом.',
         })
+      }
+  
+      if (user.role === 'teacher') {
+        const course = await Course.findOrFail(data.course_id)
+        if (course.teacher_id !== user.user_id) {
+          return response.status(403).json({
+            message: 'Доступ запрещен. Вы можете записывать студентов только на свои курсы.',
+          })
+        }
       }
   
       const existingEnrollment = await Enrollment.query()
@@ -129,13 +138,13 @@ export default class EnrollmentsController {
   
       if (existingEnrollment) {
         return response.status(400).json({
-          message: 'Студент уже записан на этот курс.'
+          message: 'Студент уже записан на этот курс.',
         })
       }
-
-      const course: Course = await Course.findOrFail(data.course_id)
-      const student: User = await User.findOrFail(data.student_id)
-      const teacher: User = await User.findOrFail(course.teacher_id)
+  
+      const course = await Course.findOrFail(data.course_id)
+      const student = await User.findOrFail(data.student_id)
+      const teacher = await User.findOrFail(course.teacher_id)
   
       const enrollment = await Enrollment.create(data)
       await enrollment.save()
@@ -149,7 +158,7 @@ export default class EnrollmentsController {
           first_name: student.first_name,
           middle_name: student.middle_name,
           email: student.email,
-          role: student.role
+          role: student.role,
         },
         course: {
           course_id: course.course_id,
@@ -161,11 +170,11 @@ export default class EnrollmentsController {
             first_name: teacher.first_name,
             middle_name: teacher.middle_name,
             email: teacher.email,
-            role: teacher.role
-          }
+            role: teacher.role,
+          },
         },
         created_at: enrollment.created_at,
-        updated_at: enrollment.updated_at
+        updated_at: enrollment.updated_at,
       })
     } catch (error) {
       if (error.message.includes('Row not found')) {
@@ -175,7 +184,7 @@ export default class EnrollmentsController {
       }
       return response.status(500).json({
         message: 'Произошла ошибка при записи на курс.',
-        error: error.message
+        error: error.message,
       })
     }
   }

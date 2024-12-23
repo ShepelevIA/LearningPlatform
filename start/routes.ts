@@ -46,7 +46,7 @@ router.group(() => {
 
   router.group(() => {
     router.get('/', [EnrollmentsController, 'index']).use(middleware.auth({ roles: ['admin', 'teacher'] }))
-    router.post('/create', [EnrollmentsController, 'create']).use(middleware.auth({ roles: ['admin', 'student'] }))
+    router.post('/create', [EnrollmentsController, 'create']).use(middleware.auth({ roles: ['admin', 'student', 'teacher'] }))
     router.get('/show/:id', [EnrollmentsController, 'show']).use(middleware.auth({ roles: ['admin', 'teacher'] }))
     router.patch('/update/:id', [EnrollmentsController, 'update']).use(middleware.auth({ roles: ['admin', 'teacher'] }))
     router.delete('/destroy/:id', [EnrollmentsController, 'destroy']).use(middleware.auth({ roles: ['admin', 'teacher'] }))
