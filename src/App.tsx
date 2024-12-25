@@ -3,8 +3,8 @@ import { BrowserRouter as Router } from "react-router-dom"
 import Routers from "./router/Index"
 import CssBaseline from "@mui/joy/CssBaseline"
 import { CssVarsProvider } from "@mui/joy/styles"
-import ButtonDarkMode from "./components/ButtonDarkMode"
 import customTheme from "./styles/theme/customTheme"
+import './App.css'
 
 import "@fontsource/inter/300.css"
 import "@fontsource/inter/400.css"
@@ -23,7 +23,6 @@ export default function App() {
   return (
     <CssVarsProvider theme={customTheme} defaultMode={mode}>
       <CssBaseline />
-      <ButtonDarkMode />
       <Router>
         <Routers />
       </Router>
