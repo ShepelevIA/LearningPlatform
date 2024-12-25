@@ -1,6 +1,6 @@
 import { Box,Typography } from "@mui/joy"
 import { useState, useEffect } from "react"
-import defaultReact from '../assets/react.svg' 
+import logo from '../assets/img/logo.svg' 
 import ButtonDarkMode from "./ButtonDarkMode"
 
 interface SidebarProps {
@@ -64,8 +64,8 @@ export default function Sidebar({ isOpenSidebar }: SidebarProps) {
                 marginTop: '20px'
             }}
         >
-          <Box sx={{display: 'flex', justifyContent: 'center'}}>
-            <img src={defaultReact} alt="defaultReact" />
+          <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+            <img style={{width: '50px'}} src={logo} alt="logo" />
             { isOpenSidebar || isHovered ? 
               <Typography 
               sx={{
