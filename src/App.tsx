@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import Routers from "./router/Index"
 import CssBaseline from "@mui/joy/CssBaseline"
 import { CssVarsProvider } from "@mui/joy/styles"
 import customTheme from "./styles/theme/customTheme"
 import './App.css'
+
+import { Provider } from 'react-redux'
+import { store } from './store'
 
 import "@fontsource/inter/300.css"
 import "@fontsource/inter/400.css"
@@ -21,18 +24,21 @@ export default function App() {
   }, [mode])
 
   const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
-    const token = localStorage.getItem("token")
-    if (token) {
+    const token = localStorage.getItem("access_token")
+    if (!token && location.pathname !== "/register") {
       navigate("/login")
     }
-  }, [navigate])
+  }, [navigate, location.pathname])
 
   return (
-    <CssVarsProvider theme={customTheme} defaultMode={mode}>
-      <CssBaseline />
-      <Routers />
-    </CssVarsProvider>
+    <Provider store={store}>
+      <CssVarsProvider theme={customTheme} defaultMode={mode}>
+        <CssBaseline />
+        <Routers />
+      </CssVarsProvider>
+    </Provider>
   )
 }

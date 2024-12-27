@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { AppDispatch, RootState } from '../../store'
+import { login } from '../../store/Slices/authSlice'
 import Sheet from '@mui/joy/Sheet'
 import Typography from '@mui/joy/Typography'
 import FormControl from '@mui/joy/FormControl'
@@ -15,16 +18,35 @@ import { useMediaQuery } from "@mui/material"
 export default function Login() {
   const [isAnimating, setIsAnimating] = useState(false)
   const [bgImageLoaded, setBgImageLoaded] = useState(false)
+  const [credentials, setCredentials] = useState({ email: '', password: '' })
+  const [isRegisterLoading, setIsRegisterLoading] = useState(false) 
 
   const isMdScreen1373 = useMediaQuery("(max-width: 1373px)")
-
+  const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
+  const { loading, error } = useSelector((state: RootState) => state.auth)
 
-  const handleRegisterClick = () => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setCredentials({ ...credentials, [name]: value })
+  }
+
+  const handleLogin = async () => {
+    try {
+      await dispatch(login(credentials)).unwrap()
+      navigate('/')
+    } catch (error) {
+      console.error('Ошибка входа:', error)
+    }
+  }
+
+  const handleRegisterClick = async () => {
+    setIsRegisterLoading(true) 
     setIsAnimating(true)
     setTimeout(() => {
       navigate('/register')
-    }, 500) 
+      setIsRegisterLoading(false) 
+    }, 500)
   }
 
   useEffect(() => {
@@ -54,11 +76,10 @@ export default function Login() {
         overflow: 'hidden',
         position: 'relative',
         [theme.breakpoints.down("md")]: {
-            flexWrap: 'wrap'
+          flexWrap: 'wrap'
         }
       })}
     >
-
       <Box
         sx={(theme) => ({
           display: 'flex',
@@ -74,23 +95,23 @@ export default function Login() {
         })}
       >
         <Box
-        component="img"
-        src={Logo}
-        alt="Logo"
-        sx={(theme) => ({
+          component="img"
+          src={Logo}
+          alt="Logo"
+          sx={(theme) => ({
             maxWidth: "230px",
             width: "100%",
             [theme.breakpoints.down("md")]: {
-            maxWidth: "100px",
+              maxWidth: "100px",
             },
-        })}
+          })}
         />
         <Typography
           sx={(theme) => ({
             marginLeft: '10px',
             whiteSpace: 'nowrap',
             [theme.breakpoints.down("md")]: {
-                fontSize: 30
+              fontSize: 30
             },
           })}
           level="h1"
@@ -117,7 +138,6 @@ export default function Login() {
       >
         <Box
           sx={{
-            
             opacity: isAnimating ? 0 : 1,
             transition: 'opacity 0.3s ease',
           }}
@@ -125,29 +145,54 @@ export default function Login() {
           <Typography level="h4" component="h1">
             <b>Добро пожаловать!</b>
           </Typography>
-          <Typography sx={{mb: 2}} level="body-sm">Войдите, чтобы продолжить.</Typography>
-          <FormControl sx={{mb: 2}}>
+          <Typography sx={{ mb: 2 }} level="body-sm">Войдите, чтобы продолжить.</Typography>
+          <FormControl sx={{ mb: 2 }}>
             <FormLabel>Email</FormLabel>
-            <Input name="email" type="email" placeholder="johndoe@email.com" />
+            <Input
+              name="email"
+              type="email"
+              placeholder="johndoe@email.com"
+              value={credentials.email}
+              onChange={handleInputChange}
+              autoComplete="off"
+            />
           </FormControl>
           <FormControl>
             <FormLabel>Пароль</FormLabel>
-            <Input name="password" type="password" placeholder="*******" />
+            <Input
+              name="password"
+              type="password"
+              placeholder="*******"
+              value={credentials.password}
+              onChange={handleInputChange}
+              autoComplete="off"
+            />
           </FormControl>
-          <Box sx={{display: 'flex', flexDirection: 'column', 'alignItems': 'center'}}>
-            <Button sx={{ mt: 3, mx: 'auto', width: '50%' }}>Войти</Button>
-            <Typography
-                endDecorator={
-                <Button variant="plain" onClick={handleRegisterClick}>
-                    Регистрация
-                </Button>
-                }
-                sx={{ mt: 3, fontSize: 'sm', alignSelf: 'center' }}
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Button
+              sx={{ mt: 3, mx: 'auto', width: '50%' }}
+              onClick={handleLogin}
+              loading={loading} 
             >
-                У вас нет учетной записи?
+              Войти
+            </Button>
+            {error && <Typography color="danger" sx={{ mt: 1 }}>{error}</Typography>}
+            <Typography
+              endDecorator={
+                <Button
+                  variant="plain"
+                  onClick={handleRegisterClick}
+                  loading={isRegisterLoading} 
+                >
+                  Регистрация
+                </Button>
+              }
+              sx={{ mt: 3, fontSize: 'sm', alignSelf: 'center' }}
+            >
+              У вас нет учетной записи?
             </Typography>
-            <Box sx={{mt: 2}}>
-                <ButtonDarkMode />
+            <Box sx={{ mt: 2 }}>
+              <ButtonDarkMode />
             </Box>
           </Box>
         </Box>
