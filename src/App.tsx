@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { BrowserRouter as Router } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import Routers from "./router/Index"
 import CssBaseline from "@mui/joy/CssBaseline"
 import { CssVarsProvider } from "@mui/joy/styles"
@@ -20,12 +20,19 @@ export default function App() {
     localStorage.setItem("theme", mode)
   }, [mode])
 
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      navigate("/login")
+    }
+  }, [navigate])
+
   return (
     <CssVarsProvider theme={customTheme} defaultMode={mode}>
       <CssBaseline />
-      <Router>
-        <Routers />
-      </Router>
+      <Routers />
     </CssVarsProvider>
   )
 }

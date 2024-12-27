@@ -4,10 +4,10 @@ import { DarkMode, LightMode } from "@mui/icons-material"
 
 interface ButtonDarkMode {
   isOpenSidebar?: boolean,
-  isHovered?: boolean
+  isHovered?: boolean,
 }
 
-export default function ButtonDarkMode({isOpenSidebar, isHovered}: ButtonDarkMode) {
+export default function ButtonDarkMode({isOpenSidebar, isHovered }: ButtonDarkMode) {
   const { mode, setMode } = useColorScheme()
 
   const toggleTheme = () => {
@@ -79,9 +79,14 @@ export default function ButtonDarkMode({isOpenSidebar, isHovered}: ButtonDarkMod
             }}
           />
   :
-    <Button    
+    <Button
       variant="plain"       
       onClick={toggleTheme}
+      sx={{
+        width: "auto", 
+        display: "inline-block",
+        maxWidth: "fit-content", 
+      }}
     >
       {mode === "dark" ? <DarkMode sx={{color: '#9fa8da'}} /> : <LightMode sx={{color: '#fdd836'}} />}
     </Button>

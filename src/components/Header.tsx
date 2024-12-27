@@ -11,7 +11,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 
     const [sidebarVisible, setSidebarVisible] = useState(false)
 
-    const isMdScreen = useMediaQuery("(max-width:768px)")
+    const isMdScreen = useMediaQuery("(max-width:899px)")
 
     const toggleSidebar = () => {
         setSidebarVisible(!sidebarVisible)
